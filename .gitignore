@@ -39,3 +39,11 @@ __pycache__/
 *.pyc
 *.pyo
 .sudopw
+
+# ── Skrip debug sekali pakai ────────────────────────────────
+uji*.mjs
+uji_*.py
+perbaiki_*.py
+fix*.py
+tancap_*.py
+tampil_*.py
