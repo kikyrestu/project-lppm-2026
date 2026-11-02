@@ -1,0 +1,41 @@
+# ── Dependensi & build ──────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+
+# ── Rahasia — JANGAN PERNAH di-commit ───────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Berkas lokal / editor ───────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# ── Sementara & artefak uji ─────────────────────────────────
+/tmp/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Database ────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+prisma/*.db
+
+# ── Cache Python (generator dokumentasi) ────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.sudopw

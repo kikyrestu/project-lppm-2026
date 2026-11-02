@@ -1,0 +1,969 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dokumentasi API — Sistem Informasi LPPM</title>
+<style>
+:root{
+  --bg-canvas:#0b0f17;
+  --bg-grid:radial-gradient(circle,#1e293b 1.2px,transparent 1.2px);
+  --bg-card:#131a26;
+  --bg-card-header:#1a2334;
+  --bg-card-hover:#172132;
+  --bg-pill:rgba(255,255,255,.06);
+  --border-card:#243247;
+  --border-card-hover:#3d5477;
+  --border-active:#6366f1;
+  --border-hairline:#1c2738;
+  --text-primary:#f1f5f9;
+  --text-secondary:#94a3b8;
+  --text-muted:#64748b;
+  --text-code:#e2e8f0;
+  --pk-color:#f59e0b;
+  --fk-color:#38bdf8;
+  --line-default:#475569;
+  --line-active:#6366f1;
+  --cat-master:#10b981;
+  --cat-users:#6366f1;
+  --cat-proposal:#0ea5e9;
+  --cat-review:#f59e0b;
+  --cat-doc:#a855f7;
+  --cat-log:#14b8a6;
+  --cat-publik:#ec4899;
+  --toolbar-bg:rgba(19,26,38,.92);
+  --card-shadow:0 10px 25px -5px rgba(0,0,0,.55),0 8px 10px -6px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg-canvas);color:var(--text-primary);
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  font-size:14.5px;line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* --- toolbar --- */
+.toolbar{
+  position:sticky;top:0;z-index:50;
+  background:var(--toolbar-bg);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-card);
+  padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.toolbar .mark{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;
+  color:#fff;background:linear-gradient(135deg,#4f46e5,#06b6d4);
+  padding:8px 11px;border-radius:8px;line-height:1.1;text-align:center;
+}
+.toolbar h1{font-size:16px;margin:0;font-weight:700}
+.toolbar .sub{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+.toolbar nav{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap}
+.toolbar nav a{color:var(--text-secondary);font-size:12px;text-decoration:none}
+.toolbar nav a:hover{color:var(--text-primary)}
+
+.wrap{max-width:1060px;margin:0 auto;padding:28px 24px 90px}
+
+/* --- hero --- */
+.hero{
+  background:var(--bg-card);border:1px solid var(--border-card);border-radius:14px;
+  padding:26px 28px;margin-bottom:26px;box-shadow:var(--card-shadow);
+}
+.hero h2{margin:0 0 6px;font-size:23px;font-weight:800;letter-spacing:-.2px}
+.hero p{margin:0;color:var(--text-secondary);font-size:13.5px;max-width:760px}
+.meta-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:18px;
+  padding-top:16px;border-top:1px solid var(--border-hairline)}
+.meta-row div span{display:block;font-size:10px;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--text-muted);margin-bottom:3px}
+.meta-row div b{font-size:14px;font-weight:600;color:var(--text-primary)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:26px}
+.stat{background:var(--bg-card);border:1px solid var(--border-card);border-radius:11px;padding:14px 16px}
+.stat b{display:block;font-size:25px;font-weight:800;line-height:1.15}
+.stat span{font-size:11px;color:var(--text-muted)}
+
+h3.sec{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
+  color:var(--text-secondary);text-transform:uppercase;letter-spacing:.1em;
+  margin:36px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--border-card);
+}
+
+/* --- grup endpoint --- */
+.grup{background:var(--bg-card);border:1px solid var(--border-card);
+  border-radius:13px;margin-bottom:18px;overflow:hidden;box-shadow:var(--card-shadow)}
+.grup-head{background:var(--bg-card-header);padding:15px 20px;
+  border-bottom:1px solid var(--border-card);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.grup-head .bar{width:4px;height:26px;border-radius:2px;flex-shrink:0}
+.grup-head h4{margin:0;font-size:15.5px;font-weight:700}
+.grup-head .modul{font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  background:var(--bg-pill);border:1px solid var(--border-hairline);
+  padding:3px 8px;border-radius:5px;color:var(--text-secondary)}
+.grup-head .ringkas{width:100%;font-size:12.5px;color:var(--text-secondary);margin-top:2px}
+
+/* --- kartu endpoint --- */
+.ep{border-bottom:1px solid var(--border-hairline);padding:18px 20px}
+.ep:last-child{border-bottom:none}
+.ep-line{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:9px}
+.met{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+  padding:4px 9px;border-radius:5px;letter-spacing:.05em;color:#fff;flex-shrink:0}
+.m-GET{background:#0ea5e9}.m-POST{background:#10b981}.m-PUT{background:#f59e0b}
+.m-PATCH{background:#f59e0b}.m-DELETE{background:#ef4444}
+.path{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-code);
+  background:#0a0e16;border:1px solid var(--border-hairline);
+  padding:4px 10px;border-radius:6px;word-break:break-all}
+.badge{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:.04em}
+.b-ok{background:rgba(16,185,129,.14);color:#34d399;border:1px solid rgba(16,185,129,.35)}
+.b-plan{background:rgba(148,163,184,.12);color:var(--text-muted);border:1px solid var(--border-card)}
+.b-auth{background:rgba(99,102,241,.14);color:#a5b4fc;border:1px solid rgba(99,102,241,.35)}
+.ep > p.desc{margin:0 0 12px;color:var(--text-secondary);font-size:13px}
+
+table{width:100%;border-collapse:collapse;margin:9px 0;font-size:12.5px}
+th,td{border:1px solid var(--border-card);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:var(--bg-card-header);color:var(--text-secondary);font-weight:600;
+  font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td code{background:#0a0e16;border:1px solid var(--border-hairline);
+  padding:1.5px 5px;border-radius:4px;font-size:11.5px;color:#fbbf24}
+.req-y{color:#f87171;font-weight:700}
+.req-n{color:var(--text-muted)}
+
+pre{
+  background:#070c14;border:1px solid var(--border-card);border-radius:9px;
+  padding:14px 16px;overflow-x:auto;margin:10px 0;
+}
+pre code{font-size:11.8px;line-height:1.62;color:#a5f3fc;white-space:pre}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--text-muted);margin:14px 0 0;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+
+ul.notes{margin:9px 0 0;padding-left:20px}
+ul.notes li{font-size:12.5px;color:var(--text-secondary);margin:5px 0}
+ul.notes li strong{color:var(--text-primary)}
+
+footer{margin-top:44px;padding-top:20px;border-top:1px solid var(--border-card);
+  font-size:11.5px;color:var(--text-muted);text-align:center}
+
+@media print{
+  body{background:#fff;color:#111}
+  .toolbar{position:static;background:#fff;border-bottom:2px solid #111}
+  .toolbar nav{display:none}
+  .grup,.hero,.stat{box-shadow:none;break-inside:avoid}
+  .grup{border-color:#bbb}.ep{break-inside:avoid}
+  pre{background:#f6f8fa;border-color:#ddd}
+  pre code{color:#111}
+  th{background:#eee;color:#333}
+  td,th{border-color:#ccc}
+  .path{background:#f2f2f2;color:#111;border-color:#ddd}
+  .m-GET,.m-POST{color:#fff}
+}
+</style></head><body>
+<div class="toolbar">
+  <div class="mark">LPPM<br>API</div>
+  <div><h1>Dokumentasi API — Sistem Informasi LPPM</h1>
+    <div class="sub">STIKOM PGRI Banyuwangi</div></div>
+  <nav><a href="#ringkas">Ringkas</a><a href="#konvensi">Konvensi</a>
+    <a href="#role">Role</a><a href="#endpoint">Endpoint</a><a href="#error">Error</a></nav>
+</div>
+<div class="wrap"><div class="hero" id="ringkas">
+  <h2>Dokumentasi Antarmuka Programming (API)</h2>
+  <p>Dokumen ini menjelaskan seluruh endpoint backend Sistem Informasi LPPM. Setiap endpoint
+  disertai kontrak permintaan, kode respons, contoh nyata, dan catatan keamanan.
+  Endpoint yang sudah diuji end-to-end ditandai <b>Terverifikasi</b>; sisanya masih
+  dalam pengerjaan dan ditandai <b>Rencana</b> agar tidak disalahartikan sebagai
+  fitur yang sudah tersedia.</p>
+  <div class="meta-row">
+    <div><span>Versi</span><b>1.0</b></div>
+    <div><span>Tanggal</span><b>28 Oktober 2026</b></div>
+    <div><span>Basis URL</span><b class="mono">http://localhost:3000</b></div>
+    <div><span>Format data</span><b>JSON</b></div>
+    <div><span>Otentikasi</span><b>Cookie httpOnly (JWT HS256)</b></div>
+  </div>
+</div><div class="stats">
+  <div class="stat"><b>79</b><span>Total endpoint terdaftar</span></div>
+  <div class="stat"><b style="color:#34d399">74</b><span>Terverifikasi end-to-end</span></div>
+  <div class="stat"><b style="color:var(--text-muted)">5</b><span>Rencana (belum dibuat)</span></div>
+  <div class="stat"><b>7</b><span>Role pengguna</span></div>
+</div><h3 class="sec" id="konvensi">Konvensi umum</h3><div class="grup"><div class="ep"><p class="desc">Seluruh endpoint memakai satu bentuk respons yang sama,
+    sehingga klien cukup memeriksa field <code>ok</code> untuk menentukan alur.</p>
+    <div class="two">
+      <div><div class="lbl" style="margin-top:0">Sukses</div>
+        <pre><code>{ "ok": true, ...data }</code></pre></div>
+      <div><div class="lbl" style="margin-top:0">Gagal</div>
+        <pre><code>{ "ok": false, "code": "...", "message": "..." }</code></pre></div>
+    </div>
+    <div class="lbl">Aturan yang berlaku</div>
+    <ul class="notes">
+      <li>Semua body permintaan memakai <strong>Content-Type: application/json</strong>.</li>
+      <li>Validasi memakai <strong>Zod</strong>; kegagalan validasi menghasilkan <strong>400 VALIDATION</strong> beserta daftar pesan per field.</li>
+      <li>Sesi dikirim sebagai <strong>cookie httpOnly</strong>, sehingga token tidak dapat dibaca script di browser.</li>
+      <li>Masa berlaku sesi <strong>8 jam</strong>; setelah itu permintaan menghasilkan <strong>401 SESSION_INVALID</strong> dan cookie dibersihkan otomatis.</li>
+      <li>Password disimpan sebagai <strong>bcrypt cost 10</strong> dan tidak pernah dikembalikan dalam bentuk apa pun.</li>
+    </ul></div></div><h3 class="sec" id="role">Matriks otorisasi per rute</h3><div class="grup"><div class="ep"><p class="desc">Aturan ini diterapkan di <code>src/middleware.js</code>, yaitu sebelum permintaan sampai ke handler mana pun.</p><table><thead><tr><th>Prefix rute</th><th>Role yang diizinkan</th><th>Fungsi</th></tr></thead><tbody><tr><td><code>/api/admin</code></td><td>ADMIN</td><td>Master data, akun, dan konfigurasi sistem.</td></tr><tr><td><code>/api/ketua</code></td><td>KETUA_STIKOM, KETUA_LPPM</td><td>Rekap eksekutif dan persetujuan akhir.</td></tr><tr><td><code>/api/kaprodi</code></td><td>KAPRODI</td><td>Verifikasi tahap pertama untuk program studinya.</td></tr><tr><td><code>/api/prodi</code></td><td>PRODI</td><td>Rekap per program studi.</td></tr><tr><td><code>/api/reviewer</code></td><td>REVIEWER</td><td>Penilaian proposal yang ditugaskan.</td></tr><tr><td><code>/api/verifikasi</code></td><td>KAPRODI, ADMIN</td><td>Proses verifikasi dua tahap.</td></tr><tr><td><code>/api/proposal</code></td><td>Semua role (7)</td><td>Pengusulan dan pelacakan proposal.</td></tr><tr><td><code>/api/akun</code></td><td>ADMIN</td><td>Pengelolaan akun pengguna.</td></tr><tr><td><code>/api/publik, /berita, /galeri, /dokumen-publik</code></td><td>Tanpa sesi</td><td>Konten publik.</td></tr></tbody></table><div class="lbl">Catatan</div><ul class="notes">
+      <li>Daftar rute publik bersifat <strong>eksplisit</strong>, bukan pola longgar — mencegah rute baru tidak sengaja menjadi publik.</li>
+      <li>Setelah token diverifikasi, middleware menyisipkan <code>x-user-id</code>, <code>x-user-nidn</code>, dan <code>x-user-roles</code> ke header permintaan.</li>
+    </ul></div></div><h3 class="sec" id="endpoint">Daftar endpoint</h3><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-users)"></div><h4>Autentikasi &amp; Sesi</h4><span class="modul">M1</span><div class="ringkas">Login NIDN, pembacaan sesi, dan logout. Sesi disimpan sebagai cookie httpOnly berumur 8 jam.</div></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/auth/login</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Tidak perlu (publik)</span></div><p class="desc">Autentikasi pengguna dengan NIDN dan password.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>nidn</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>1–20 karakter. NIDN dosen/pegawai.</td></tr><tr><td><code>password</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>1–200 karakter.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Login berhasil. Cookie `lppm_token` (httpOnly, path=/) disetel.</td></tr><tr><td><code>400</code></td><td>Body tidak lolos validasi Zod.</td></tr><tr><td><code>401</code></td><td>NIDN tidak dikenal ATAU password salah.</td></tr><tr><td><code>403</code></td><td>Kredensial benar tetapi akun berstatus NONAKTIF.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{&quot;nidn&quot;: &quot;9999999001&quot;, &quot;password&quot;: &quot;LppmDemo123!&quot;}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Login berhasil&quot;,
+  &quot;user&quot;: {
+    &quot;id&quot;: &quot;a779dadb-caa3-4ac6-82a4-55dd07405de8&quot;,
+    &quot;nidn&quot;: &quot;9999999001&quot;,
+    &quot;nama&quot;: &quot;Admin LPPM&quot;,
+    &quot;roles&quot;: [&quot;ADMIN&quot;],
+    &quot;programStudi&quot;: { &quot;kode&quot;: &quot;TI&quot;, &quot;nama&quot;: &quot;Teknik Informatika&quot; }
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;UNAUTHORIZED&quot;,
+  &quot;message&quot;: &quot;NIDN atau password salah&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Pesan kegagalan **sengaja dibuat sama** untuk NIDN tak dikenal dan password salah, agar akun tidak bisa ditebak keberadaannya (user-enumeration).</li><li>Bcrypt tetap dijalankan memakai hash dummy ketika NIDN tidak ditemukan, sehingga waktu respons identik (mencegah pembocoran lewat timing).</li><li>Cookie bersifat httpOnly sehingga token tidak dapat dibaca script browser akibat XSS.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/auth/me</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Perlu sesi (semua role)</span></div><p class="desc">Tampilkan sesi berjalan beserta role aktif.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Data pengguna dan daftar role.</td></tr><tr><td><code>401</code></td><td>Tidak ada sesi, token kedaluwarsa, atau token rusak.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;user&quot;: {
+    &quot;id&quot;: &quot;a779dadb-...&quot;,
+    &quot;nidn&quot;: &quot;9999999001&quot;,
+    &quot;nama&quot;: &quot;Admin LPPM&quot;,
+    &quot;status&quot;: &quot;AKTIF&quot;,
+    &quot;programStudi&quot;: { &quot;kode&quot;: &quot;TI&quot;, &quot;nama&quot;: &quot;Teknik Informatika&quot; },
+    &quot;roles&quot;: [&quot;ADMIN&quot;]
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;UNAUTHENTICATED&quot;,
+  &quot;message&quot;: &quot;Belum login&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Data dibaca **langsung dari database**, bukan sekadar isi JWT — penonaktifan akun langsung berlaku tanpa menunggu token kedaluwarsa.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/auth/logout</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Perlu sesi</span></div><p class="desc">Hapus cookie sesi.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Sesi dihapus.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Berhasil logout&quot;
+}</code></pre></div></div></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Administrasi Sistem</h4><span class="modul">M8 (selesai) / M9 (rencana)</span><div class="ringkas">Master data, periode akademik, dan form dinamis — **M8 sudah dibangun dan teruji nyata**. Akun pengguna dan log aktivitas menyusul di M9.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/contoh</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Rute uji untuk memastikan guard role ADMIN bekerja.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Terotorisasi.</td></tr><tr><td><code>403</code></td><td>Role tidak berwenang.</td></tr><tr><td><code>401</code></td><td>Belum login.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Terverifikasi sebagai ADMIN&quot;,
+  &quot;sebagai&quot;: { &quot;nidn&quot;: &quot;9999999001&quot;, &quot;roles&quot;: [&quot;ADMIN&quot;] }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Rute ini khusus role: ADMIN&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Uji nyata: reviewer menerima 403, admin menerima 200.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/prodi</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Daftar program studi.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar program studi.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;prodi&quot;: [
+    { &quot;id&quot;: &quot;…&quot;, &quot;kode&quot;: &quot;MI&quot;, &quot;nama&quot;: &quot;Manajemen Informatika&quot; },
+    { &quot;id&quot;: &quot;…&quot;, &quot;kode&quot;: &quot;TI&quot;, &quot;nama&quot;: &quot;Teknik Informatika&quot; }
+  ]
+}</code></pre></div></div></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/prodi</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tambah program studi.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>kode</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 20 karakter, wajib unik.</td></tr><tr><td><code>nama</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 100 karakter.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>201</code></td><td>Dibuat.</td></tr><tr><td><code>409</code></td><td>Kode sudah terpakai.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{ &quot;kode&quot;: &quot;SJ&quot;, &quot;nama&quot;: &quot;Sistem Jaringan&quot; }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;prodi&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;kode&quot;: &quot;SJ&quot;, &quot;nama&quot;: &quot;Sistem Jaringan&quot; }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;CONFLICT&quot;,
+  &quot;message&quot;: &quot;Kode \&quot;SJ\&quot; sudah dipakai.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Duplikat ditolak **sebelum** menyentuh database, bukan mengandalkan error mentah Prisma.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/prodi/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus program studi.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Dihapus.</td></tr><tr><td><code>409</code></td><td>Masih dipakai.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Program studi dihapus.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;IN_USE&quot;,
+  &quot;message&quot;: &quot;Program studi masih dipakai 8 data dan tidak dapat dihapus.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Penghitungan user + proposal dilakukan **sebelum** hapus, sehingga pesannya jelas, bukan error FK 500.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/periode</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Daftar periode akademik.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar periode.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: [
+    { &quot;id&quot;: &quot;…&quot;, &quot;nama&quot;: &quot;2026/2027 Ganjil&quot;, &quot;tahunMulai&quot;: 2026, &quot;tahunSelesai&quot;: 2027, &quot;isActive&quot;: true }
+  ]
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>Urutan: yang aktif dulu, lalu tahun terbaru.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/periode</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tambah periode akademik.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>nama</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 50 karakter.</td></tr><tr><td><code>tahunMulai</code></td><td><code>number</code></td><td><span class="req-y">ya</span></td><td>2000–2100.</td></tr><tr><td><code>tahunSelesai</code></td><td><code>number</code></td><td><span class="req-y">ya</span></td><td>Harus ≥ tahunMulai.</td></tr><tr><td><code>isActive</code></td><td><code>boolean</code></td><td><span class="req-n">tidak</span></td><td>Default false.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>201</code></td><td>Dibuat.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{ &quot;nama&quot;: &quot;2027/2028 Ganjil&quot;, &quot;tahunMulai&quot;: 2027, &quot;tahunSelesai&quot;: 2028, &quot;isActive&quot;: true }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;nama&quot;: &quot;2027/2028 Ganjil&quot;, &quot;isActive&quot;: true }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VALIDATION&quot;,
+  &quot;message&quot;: &quot;Format permintaan tidak valid&quot;,
+  &quot;detail&quot;: [{ &quot;field&quot;: &quot;tahunSelesai&quot;, &quot;message&quot;: &quot;harus &gt;= tahunMulai&quot; }]
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-PUT">PUT</span><span class="path">/api/admin/periode/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ubah periode — termasuk mengaktifkannya.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>isActive</code></td><td><code>boolean</code></td><td><span class="req-n">tidak</span></td><td>Mengaktifkan otomatis menonaktifkan periode lain.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Diperbarui.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr><tr><td><code>404</code></td><td>Periode tidak ada.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{ &quot;isActive&quot;: true }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;nama&quot;: &quot;2026/2027 Ganjil&quot;, &quot;isActive&quot;: true }
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>**Jaminan bisnis: tepat satu periode aktif.** Dijalankan dalam satu transaksi Prisma — semua periode lain dinonaktifkan lebih dulu. Teruji: mengaktifkan periode kedua otomatis menonaktifkan yang pertama (jumlah tetap 1).</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/form-field</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Konfigurasi field dinamis per jenis proposal.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar konfigurasi field.</td></tr><tr><td><code>400</code></td><td>`jenis` di luar enum.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/form-field?jenis=KKN</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;fields&quot;: [
+    { &quot;id&quot;: &quot;…&quot;, &quot;jenisProposal&quot;: &quot;KKN&quot;, &quot;label&quot;: &quot;Desa Sasaran&quot;,
+      &quot;tipeInput&quot;: &quot;text&quot;, &quot;opsi&quot;: null, &quot;wajib&quot;: true, &quot;urutan&quot;: 1 }
+  ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VALIDATION&quot;,
+  &quot;message&quot;: &quot;jenis tidak dikenal. Pilihan: PENELITIAN, PENGABDIAN, KKN, …&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Kunci unik `(jenisProposal, label)` menjamin tidak ada field ganda — akar perbaikan pada Fase 1.</li><li>Nilai dari klien pada M2 **tidak diterima apa adanya**; hanya field terdaftar di sini yang valid.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/form-field</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tambah konfigurasi field.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>jenisProposal</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>PENELITIAN | PENGABDIAN | KKN | PENGABDIAN_MASYARAKAT | PKM</td></tr><tr><td><code>label</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 150, wajib unik per jenis.</td></tr><tr><td><code>tipeInput</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>text | number | date | select | textarea | file</td></tr><tr><td><code>opsi</code></td><td><code>array</code></td><td><span class="req-n">tidak</span></td><td>Wajib untuk select; opsi lain null.</td></tr><tr><td><code>wajib</code></td><td><code>boolean</code></td><td><span class="req-n">tidak</span></td><td>Default false.</td></tr><tr><td><code>urutan</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Urutan tampil di form.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>201</code></td><td>Dibuat.</td></tr><tr><td><code>409</code></td><td>Label sama.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{ &quot;jenisProposal&quot;: &quot;KKN&quot;, &quot;label&quot;: &quot;Nama Dusun&quot;, &quot;tipeInput&quot;: &quot;text&quot;, &quot;wajib&quot;: true, &quot;urutan&quot;: 5 }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;field&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;label&quot;: &quot;Nama Dusun&quot;, &quot;urutan&quot;: 5 }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VALIDATION&quot;,
+  &quot;message&quot;: &quot;Format permintaan tidak valid&quot;,
+  &quot;detail&quot;: [{ &quot;field&quot;: &quot;opsi&quot;, &quot;message&quot;: &quot;Tipe select wajib memiliki minimal satu opsi.&quot; }]
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>`select` tanpa opsi ditolak **di level validasi** — mustahil tersimpan field pilihan tanpa pilihan.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/form-field/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus konfigurasi field.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Dihapus.</td></tr><tr><td><code>404</code></td><td>Field tidak ada.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>(tanpa body)</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Field dihapus.&quot;
+}</code></pre></div></div></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/akun</span><span class="badge b-plan">Rencana</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Buat akun dosen/kaprodi/reviewer.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>nidn</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Unik.</td></tr><tr><td><code>nama</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td></td></tr><tr><td><code>role</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>Salah satu dari RoleName.</td></tr><tr><td><code>password</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Disimpan sebagai bcrypt cost 10.</td></tr></tbody></table></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-proposal)"></div><h4>Proposal &amp; Tim</h4><span class="modul">M2</span><div class="ringkas">Pengusulan proposal, keanggotaan tim, dan perpindahan status.</div></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal</span><span class="badge b-plan">Rencana</span><span class="badge b-auth">Semua role</span></div><p class="desc">Buat proposal baru (status DRAFT).</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>judul</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td></td></tr><tr><td><code>jenisProposal</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>PENELITIAN | PENGABDIAN | KKN | PENGABDIAN_MASYARAKAT | PKM</td></tr><tr><td><code>fieldTambahan</code></td><td><code>object</code></td><td><span class="req-n">tidak</span></td><td>Divalidasi terhadap konfigurasi dari M8.</td></tr><tr><td><code>anggota</code></td><td><code>array</code></td><td><span class="req-n">tidak</span></td><td>NIDN anggota tim.</td></tr></tbody></table><div class="lbl">Catatan</div><ul class="notes"><li>Field tambahan divalidasi terhadap `form_field_configs` — bukan diterima apa adanya.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal</span><span class="badge b-plan">Rencana</span><span class="badge b-auth">Semua role</span></div><p class="desc">Daftar proposal sesuai role pemohon.</p></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/submit</span><span class="badge b-plan">Rencana</span><span class="badge b-auth">DOSEN</span></div><p class="desc">Kirim proposal -&gt; MENUNGGU_VERIFIKASI_KAPRODI.</p><div class="lbl">Catatan</div><ul class="notes"><li>Transisi status divalidasi terhadap state machine.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id</span><span class="badge b-plan">Rencana</span><span class="badge b-auth">Semua role</span></div><p class="desc">Detail proposal + riwayat status.</p></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-review)"></div><h4>Verifikasi &amp; Review (Tie-Breaker)</h4><span class="modul">M3</span><div class="ringkas">Verifikasi 2 tahap (Kaprodi lalu Admin), penugasan reviewer, penilaian blind, dan keputusan rapat offline.</div></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/verifikasi</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">KAPRODI, ADMIN</span></div><p class="desc">Catat keputusan verifikasi tahap berjalan.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>keputusan</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>SETUJUI | REVISI | TOLAK.</td></tr><tr><td><code>catatan</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Wajib bila REVISI atau TOLAK.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Keputusan tercatat, status proposal bergeser.</td></tr><tr><td><code>403</code></td><td>Tahap tidak sesuai role atau sudah lewat.</td></tr><tr><td><code>400</code></td><td>`keputusan` di luar enum.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/proposal/2995014c…/verifikasi
+{
+  &quot;keputusan&quot;: &quot;SETUJUI&quot;
+}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;tahap&quot;: &quot;KAPRODI&quot;,
+  &quot;verifikasi&quot;: { &quot;keputusan&quot;: &quot;SETUJUI&quot;, &quot;catatan&quot;: null },
+  &quot;proposal&quot;: { &quot;status&quot;: &quot;MENUNGGU_VERIFIKASI_ADMIN&quot; }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VERIFIKASI_TIDAK_SAHIH&quot;,
+  &quot;message&quot;: &quot;Tahap KAPRODI khusus role KAPRODI. Role Anda: ADMIN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>**Tahap tidak pernah diambil dari body** — diturunkan dari status proposal, sehingga klien tidak bisa melompati tahap.</li><li>Tahap ADMIN menuntut tahap Kaprodi sudah `SETUJUI`, dicek ulang dari tabel `verifications`.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/verifikasi</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN, KAPRODI</span></div><p class="desc">Riwayat verifikasi berurutan.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar riwayat verifikasi.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN/KAPRODI.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2995014c…/verifikasi</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;jumlah&quot;: 1,
+  &quot;riwayat&quot;: [ { &quot;tahap&quot;: &quot;KAPRODI&quot;, &quot;keputusan&quot;: &quot;SETUJUI&quot;,
+    &quot;verifikator&quot;: { &quot;nidn&quot;: &quot;0412345678&quot;, &quot;nama&quot;: &quot;Kaprodi TI&quot; } } ]
+}</code></pre></div></div></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/reviewer</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tugaskan Reviewer 1 dan 2 sekaligus.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>reviewer</code></td><td><code>array</code></td><td><span class="req-y">ya</span></td><td>Tepat 2 entri: `{ urutanReviewer, nidn }`, urutan 1 dan 2, orang berbeda.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>201</code></td><td>Kedua reviewer tercatat.</td></tr><tr><td><code>400</code></td><td>Urutan kembar atau reviewer sama.</td></tr><tr><td><code>409</code></td><td>Pengusul jadi reviewer / bukan role REVIEWER.</td></tr><tr><td><code>409</code></td><td>Status proposal belum `MENUNGGU_REVIEW`.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/proposal/5f9f44cc…/reviewer
+{
+  &quot;reviewer&quot;: [
+    { &quot;urutanReviewer&quot;: 1, &quot;nidn&quot;: &quot;0412345682&quot; },
+    { &quot;urutanReviewer&quot;: 2, &quot;nidn&quot;: &quot;0412345683&quot; }
+  ]
+}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;proposal&quot;: { &quot;status&quot;: &quot;MENUNGGU_REVIEW&quot; },
+  &quot;reviewer&quot;: [ { &quot;urutanReviewer&quot;: 1, &quot;reviewer&quot;: { &quot;nidn&quot;: &quot;0412345682&quot; } } ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;REVIEWER_KONFLIK_KEPENTINGAN&quot;,
+  &quot;message&quot;: &quot;NIDN 0412345680 adalah pengusul proposal ini.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>`urutan_reviewer` (1|2) **menggantikan kolom lama `reviewer2_id`** yang bermasalah.</li><li>`@@unique([proposalId, urutanReviewer])` menjamin tiap urutan terisi tepat satu orang.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/review</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">REVIEWER</span></div><p class="desc">Tampilan penilaian (BLIND) — hanya nilai milik sendiri.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Detail proposal + `nilaiSaya` + `progres`.</td></tr><tr><td><code>404</code></td><td>Pemohon bukan reviewer proposal ini.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/5f9f44cc…/review</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;proposal&quot;: { &quot;judul&quot;: &quot;…&quot;, &quot;dosen&quot;: { &quot;nidn&quot;: &quot;0412345680&quot; } },
+  &quot;nilaiSaya&quot;: { &quot;urutanReviewer&quot;: 1, &quot;skor&quot;: 85, &quot;rekomendasi&quot;: &quot;TERIMA&quot; },
+  &quot;progres&quot;: [ { &quot;urutanReviewer&quot;: 1, &quot;sudahMenilai&quot;: true },
+              { &quot;urutanReviewer&quot;: 2, &quot;sudahMenilai&quot;: false } ],
+  &quot;blind&quot;: true
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>**Isolasi dijaga di lapis query**: `where { proposalId, reviewerId: user }` — tidak pernah ada query yang membaca baris reviewer lain.</li><li>`progres` hanya memuat `urutanReviewer` + boolean; tanpa skor, tanpa identitas reviewer lain.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/review</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">REVIEWER</span></div><p class="desc">Kirim nilai; memicu tie-breaker bila kedua reviewer selesai.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>skor</code></td><td><code>number</code></td><td><span class="req-y">ya</span></td><td>0–100.</td></tr><tr><td><code>rekomendasi</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>TERIMA | REVISI | TOLAK.</td></tr><tr><td><code>catatan</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td></td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Nilai tercatat; bila lengkap, `hasilKombinasi` terbentuk.</td></tr><tr><td><code>404</code></td><td>Bukan reviewer proposal ini.</td></tr><tr><td><code>409</code></td><td>Status proposal bukan `MENUNGGU_REVIEW`.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/proposal/5f9f44cc…/review
+{
+  &quot;skor&quot;: 85,
+  &quot;rekomendasi&quot;: &quot;TERIMA&quot;
+}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;nilaiSaya&quot;: { &quot;skor&quot;: 85, &quot;rekomendasi&quot;: &quot;TERIMA&quot; },
+  &quot;menungguReviewerLain&quot;: true,
+  &quot;pesan&quot;: &quot;Nilai Anda tercatat. Menunggu Reviewer lain.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;BUKAN_REVIEWER_PROPOSAL_INI&quot;,
+  &quot;message&quot;: &quot;Anda tidak ditugaskan menilai proposal ini.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Nilai reviewer lain ikut dibaca **oleh sistem** untuk menghitung kombinasi — bukan oleh reviewer.</li><li>Status proposal berubah otomatis mengikuti hasil kombinasi.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/keputusan</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Keputusan rapat offline (skenario sengketa).</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>keputusanAkhir</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>LOLOS | REVISI | DITOLAK.</td></tr><tr><td><code>catatan</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Catatan rapat.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Keputusan tercatat, status proposal bergeser.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr><tr><td><code>409</code></td><td>Status bukan `PERLU_KEPUTUSAN` atau skenario bukan `TERIMA_TOLAK`.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/proposal/fca0a2cf…/keputusan
+{
+  &quot;keputusanAkhir&quot;: &quot;LOLOS&quot;,
+  &quot;catatan&quot;: &quot;Rapat 29 Okt: inovasi menutupi kelemahan anggaran.&quot;
+}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;evaluasi&quot;: { &quot;hasilKombinasi&quot;: &quot;TERIMA_TOLAK&quot;, &quot;keputusanAkhir&quot;: &quot;LOLOS&quot;,
+                 &quot;pejabat&quot;: { &quot;nidn&quot;: &quot;9999999001&quot;, &quot;nama&quot;: &quot;Admin LPPM&quot; } },
+  &quot;proposal&quot;: { &quot;status&quot;: &quot;LOLOS&quot; }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;PUTUSAN_TIDAK_DIPERLUKAN&quot;,
+  &quot;message&quot;: &quot;Proposal berstatus LOLOS. Rapat offline hanya untuk skenario PERLU_KEPUTUSAN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Dipakai **hanya** saat `hasilKombinasi = TERIMA_TOLAK`; skenario lain sudah diputuskan otomatis.</li><li>`diputuskanOleh` dicatat sebagai jejak audit keputusan rapat.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/keputusan</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role (nilai rinci hanya ADMIN &amp; KAPRODI)</span></div><p class="desc">Baca hasil kombinasi reviewer.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Hasil evaluasi; `detail` hanya untuk ADMIN &amp; KAPRODI.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/fca0a2cf…/keputusan</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;evaluasi&quot;: { &quot;hasilKombinasi&quot;: &quot;TERIMA_TOLAK&quot;, &quot;keputusanAkhir&quot;: &quot;LOLOS&quot; },
+  &quot;detail&quot;: [ { &quot;urutanReviewer&quot;: 1, &quot;skor&quot;: 85, &quot;rekomendasi&quot;: &quot;TERIMA&quot; } ]
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>Pembatasan `detail` berdasarkan kepentingan — reviewer tidak melihat nilai rinci lewat endpoint ini.</li></ul></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Penerbitan Dokumen SK &amp; ST</h4><span class="modul">M4</span><div class="ringkas">Sumber dana menjelang cetak, penomoran otomatis tahunan, dan generator PDF.</div></div><div class="ep"><div class="ep-line"><span class="met m-PUT">PUT</span><span class="path">/api/proposal/:id/sumber-dana</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Isi sumber dana menjelang cetak SK/ST.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>sumberDana</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>INTERNAL | EKSTERNAL | MANDIRI.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Sumber dana tersimpan.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr><tr><td><code>400</code></td><td>Nilai di luar enum.</td></tr><tr><td><code>409</code></td><td>Status belum lolos penilaian reviewer.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>PUT /api/proposal/2093cc76…/sumber-dana
+{
+  &quot;sumberDana&quot;: &quot;EKSTERNAL&quot;
+}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;proposal&quot;: { &quot;id&quot;: &quot;2093cc76…&quot;, &quot;status&quot;: &quot;LOLOS&quot;, &quot;sumberDana&quot;: &quot;EKSTERNAL&quot; },
+  &quot;message&quot;: &quot;Sumber dana disetel EKSTERNAL.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;STATUS_BELUM_SIAP&quot;,
+  &quot;message&quot;: &quot;Proposal berstatus MENUNGGU_REVIEW. Sumber dana diisi setelah lolos penilaian reviewer.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Diisi **menjelang cetak**, bukan saat pengusulan — sumber anggaran belum pasti pada tahap proposal diajukan.</li><li>Status yang boleh: `LOLOS` atau `MENUNGGU_SK_ST`.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/sumber-dana</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role</span></div><p class="desc">Baca sumber dana beserta pilihan yang tersedia.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Nilai saat ini, daftar pilihan, dan flag `dapatDiisi`.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/sumber-dana</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;sumberDana&quot;: &quot;EKSTERNAL&quot;,
+  &quot;pilihan&quot;: [&quot;INTERNAL&quot;, &quot;EKSTERNAL&quot;, &quot;MANDIRI&quot;],
+  &quot;dapatDiisi&quot;: true
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>`dapatDiisi` memungkinkan antarmuka menonaktifkan isian sebelum waktunya tanpa menebak aturan.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/dokumen</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Terbitkan SK atau ST dengan penomoran otomatis.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>jenis</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>SK | ST.</td></tr><tr><td><code>tahun</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Default tahun berjalan.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>201</code></td><td>Dokumen terbit dengan nomor.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr><tr><td><code>409</code></td><td>SK ganda / ST sebelum SK / sumber dana kosong / status belum siap.</td></tr><tr><td><code>409</code></td><td>Nomor bentrok akibat penerbitan serentak — ulangi.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/proposal/2093cc76…/dokumen
+{
+  &quot;jenis&quot;: &quot;SK&quot;
+}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;dokumen&quot;: { &quot;nomorSk&quot;: &quot;SK/LPPM/0003/2026&quot;, &quot;nomorSt&quot;: null,
+                &quot;tanggalTerbit&quot;: &quot;2026-10-29&quot; },
+  &quot;nomorSk&quot;: &quot;SK/LPPM/0003/2026&quot;,
+  &quot;unduh&quot;: &quot;/api/proposal/2093cc76…/dokumen/sk.pdf&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;SK_BELUM_TERBIT&quot;,
+  &quot;message&quot;: &quot;Surat Tugas hanya dapat diterbitkan setelah SK terbit.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Bentuk nomor: `{SK|ST}/LPPM/{urut 4 digit}/{tahun}` — **deret terpisah per prefix**.</li><li>Keunikan dijamin `@@unique([nomorSk])` + `@@unique([nomorSt])`, sehingga penerbitan serentak tidak pernah menghasilkan nomor ganda.</li><li>Seluruh pemeriksaan berada di dalam satu transaksi.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/dokumen</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role</span></div><p class="desc">Baca status dokumen proposal.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Nomor SK/ST, tanggal terbit, pembuat, dan tautan unduh.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/dokumen</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;proposal&quot;: { &quot;status&quot;: &quot;LOLOS&quot;, &quot;sumberDana&quot;: &quot;EKSTERNAL&quot; },
+  &quot;dokumen&quot;: { &quot;nomorSk&quot;: &quot;SK/LPPM/0003/2026&quot;, &quot;nomorSt&quot;: &quot;ST/LPPM/0002/2026&quot; },
+  &quot;dapatTerbit&quot;: true,
+  &quot;unduh&quot;: { &quot;sk&quot;: &quot;…/dokumen/sk.pdf&quot;, &quot;st&quot;: &quot;…/dokumen/st.pdf&quot; }
+}</code></pre></div></div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/dokumen/sk.pdf</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role</span></div><p class="desc">Unduh Surat Keputusan (PDF A4).</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>`application/pdf` — naskah dinas: kop surat, nomor, tabel rinci, blok tanda tangan.</td></tr><tr><td><code>404</code></td><td>Dokumen atau nomor belum terbit.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/dokumen/sk.pdf</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>(berkas PDF, 47.010 byte, halaman A4)</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOMOR_BELUM_ADA&quot;,
+  &quot;message&quot;: &quot;Surat Keputusan belum terbit.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Dirender saat diminta lewat chromium sistem (`puppeteer-core`) sehingga hasil identik dengan tampilan layar.</li><li>Tahun terbit diturunkan dari `tanggalTerbit`, bukan dari input klien.</li><li>Tanda tangan diisi oleh pejabat yang menerbitkan dokumen.</li></ul></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Rekap Eksekutif &amp; Drill-down</h4><span class="modul">M5</span><div class="ringkas">Agregasi statistik LPPM dengan filter periode akademik, drill-down ke rincian, serta export Excel dan PDF. Semua sudah dibangun dan teruji nyata.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/rekap/periode</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role terautentikasi</span></div><p class="desc">Daftar periode akademik untuk mengisi filter rekap.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar periode terurut tahun terbaru.</td></tr><tr><td><code>401</code></td><td>Belum login.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/rekap/periode</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: [
+    {
+      &quot;id&quot;: &quot;7bd43fe1-…&quot;,
+      &quot;nama&quot;: &quot;2027/2028 Ganjil&quot;,
+      &quot;tahunMulai&quot;: 2027,
+      &quot;tahunSelesai&quot;: 2028,
+      &quot;isActive&quot;: true
+    }
+  ],
+  &quot;jumlah&quot;: 9
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;UNAUTHENTICATED&quot;,
+  &quot;message&quot;: &quot;Sesi tidak ditemukan.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Urutan: tahun mulai terbaru, lalu nama.</li><li>Kolom asli model hanya tahunMulai/tahunSelesai — tidak ada tahunAkademik.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/rekap</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Rekap eksekutif seluruh program studi.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>periodeId</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>ID periode akademik.</td></tr><tr><td><code>tahunAkademik</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Tahun mulai; alternatif bila periodeId kosong.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Objek rekap lengkap.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr><tr><td><code>404</code></td><td>Periode tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/rekap?periodeId=7bd43fe1-…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: { &quot;nama&quot;: &quot;2027/2028 Ganjil&quot;, &quot;isActive&quot;: true },
+  &quot;totalProposal&quot;: 12,
+  &quot;perStatus&quot;: [
+    { &quot;tahap&quot;: &quot;Pra-Kirim&quot;, &quot;jumlah&quot;: 1 },
+    { &quot;tahap&quot;: &quot;Menunggu Verifikasi&quot;, &quot;jumlah&quot;: 2 },
+    { &quot;tahap&quot;: &quot;Penilaian Reviewer&quot;, &quot;jumlah&quot;: 3 },
+    { &quot;tahap&quot;: &quot;Perlu Revisi&quot;, &quot;jumlah&quot;: 1 },
+    { &quot;tahap&quot;: &quot;Lolos&quot;, &quot;jumlah&quot;: 4 },
+    { &quot;tahap&quot;: &quot;Ditolak&quot;, &quot;jumlah&quot;: 1 }
+  ],
+  &quot;perJenis&quot;: [ { &quot;jenis&quot;: &quot;PENELITIAN&quot;, &quot;jumlah&quot;: 8 } ],
+  &quot;perProdi&quot;: [ { &quot;programStudi&quot;: &quot;Teknik Informatika&quot;, &quot;jumlah&quot;: 7 } ],
+  &quot;jumlahPenilaianReviewer&quot;: 14,
+  &quot;cakupan&quot;: &quot;SEMUA_PRODI&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Rekap eksekutif khusus role ADMIN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Angka dihitung ulang dari tabel proposal — tidak ada tabel agregat tersimpan, sehingga tidak mungkin usang.</li><li>9 status mentah dipetakan ke 6 bucket agar laporan tidak terpecah jadi belasan baris.</li><li>Tanpa parameter, memakai periode aktif — bukan baris sembarang.</li><li>Jumlah bucket perStatus selalu sama dengan totalProposal.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/rekap/rincian</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Drill-down: angka rekap menjadi daftar proposal, dosen, atau reviewer.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>dimensi</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>status | jenis | prodi | dosen | reviewer</td></tr><tr><td><code>nilai</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Nilai yang diklik pada rekap.</td></tr><tr><td><code>periodeId</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Batasi satu periode.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Jumlah dan daftar rincian.</td></tr><tr><td><code>400</code></td><td>dimensi/nilai tidak diisi.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/rekap/rincian?dimensi=status&amp;nilai=Lolos</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;dimensi&quot;: &quot;status&quot;,
+  &quot;nilai&quot;: &quot;Lolos&quot;,
+  &quot;jumlah&quot;: 4,
+  &quot;rincian&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;judul&quot;: &quot;Sistem Informasi Kearsipan Digital&quot;,
+      &quot;jenis&quot;: &quot;PENELITIAN&quot;,
+      &quot;status&quot;: &quot;MENUNGGU_SK_ST&quot;,
+      &quot;pengusul&quot;: &quot;0412345680 Dr. Dosen Satu&quot;,
+      &quot;programStudi&quot;: &quot;Teknik Informatika&quot;,
+      &quot;terakhirDiubah&quot;: &quot;2026-10-29T04:30:00.000Z&quot;
+    }
+  ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;PARAMETER_KURANG&quot;,
+  &quot;message&quot;: &quot;Parameter dimensi dan nilai wajib diisi.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Nilai status dikirim sebagai bucket, lalu diterjemahkan balik ke status mentah sebelum dicari — inilah yang membuat angka rekap dan rinciannya selalu cocok.</li><li>Dimensi dosen memakai OR atas pengusul dan anggota tim, karena satu dosen bisa muncul dengan dua peran.</li><li>Jumlah dihitung ulang dari baris yang benar-benar dikembalikan.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/kaprodi/rekap</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">KAPRODI</span></div><p class="desc">Rekap untuk program studi sendiri.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>periodeId</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>ID periode akademik.</td></tr><tr><td><code>tahunAkademik</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Tahun mulai.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Objek rekap dengan cakupan PRODI.</td></tr><tr><td><code>400</code></td><td>Akun belum terikat prodi.</td></tr><tr><td><code>403</code></td><td>Role selain KAPRODI.</td></tr><tr><td><code>404</code></td><td>Periode tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/kaprodi/rekap</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;cakupan&quot;: &quot;PRODI&quot;,
+  &quot;programStudi&quot;: &quot;Teknik Informatika&quot;,
+  &quot;totalProposal&quot;: 7,
+  &quot;perStatus&quot;: [ … ],
+  &quot;perProdi&quot;: [ { &quot;programStudi&quot;: &quot;Teknik Informatika&quot;, &quot;jumlah&quot;: 7 } ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;PRODI_BELUM_DISET&quot;,
+  &quot;message&quot;: &quot;Akun ini belum terikat pada program studi, sehingga rekap tidak dapat dihitung.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>programStudiId diturunkan dari akun, bukan dari parameter klien — Kaprodi tidak bisa meminta angka prodi lain.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/kaprodi/rekap/rincian</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">KAPRODI</span></div><p class="desc">Drill-down terbatas prodi sendiri.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>dimensi</code></td><td><code>enum</code></td><td><span class="req-y">ya</span></td><td>status | jenis | prodi | dosen | reviewer</td></tr><tr><td><code>nilai</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Nilai yang diklik.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Rincian terbatas prodi sendiri.</td></tr><tr><td><code>403</code></td><td>Role selain KAPRODI.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/kaprodi/rekap/rincian?dimensi=jenis&amp;nilai=PENELITIAN</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;cakupan&quot;: &quot;PRODI&quot;,
+  &quot;dimensi&quot;: &quot;jenis&quot;,
+  &quot;jumlah&quot;: 5,
+  &quot;rincian&quot;: [ … ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Rincian rekap khusus role KAPRODI.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Pembatasan prodi diterapkan di query, bukan lewat cek terpisah.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/rekap/export</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Export rekap ke Excel (.xlsx) atau PDF.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>format</code></td><td><code>enum</code></td><td><span class="req-n">tidak</span></td><td>xlsx (default) | pdf</td></tr><tr><td><code>periodeId</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>ID periode akademik.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berkas unduhan.</td></tr><tr><td><code>400</code></td><td>Format tidak didukung.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr><tr><td><code>404</code></td><td>Periode tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/rekap/export?format=xlsx</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>(berkas .xlsx — 6 arsip ZIP+XML, lembar Rekap, 3 kolom: Kategori, Jenis, Jumlah)</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORMAT_TIDAK_DIDUKUNG&quot;,
+  &quot;message&quot;: &quot;Format export hanya xlsx atau pdf.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Excel ditulis tangan sebagai arsip ZIP+XML lewat adm-zip sekitar 300 KB, bukan pustaka spreadsheet berat.</li><li>Diverifikasi dengan pembaca xlsx sungguhan (openpyxl): sel numerik terbaca sebagai angka, bukan teks.</li><li>PDF dirender chromium sehingga tampilannya konsisten dengan SK/ST.</li><li>Berkas dikirim dengan Content-Disposition: attachment.</li></ul></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Konten Publik (CMS Berita, Galeri, Dokumen)</h4><span class="modul">M6</span><div class="ringkas">CMS berita berjenjang Draft, Review, Publish, ditambah galeri dan dokumen publik tanpa tahap tinjauan. Sudah dibangun dan teruji nyata.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/berita</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Daftar berita beserta hitungan per status.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>status</code></td><td><code>enum</code></td><td><span class="req-n">tidak</span></td><td>DRAFT | REVIEW | TERBIT — kosongkan untuk semua.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar berita dan hitungan per status.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/berita?status=DRAFT</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;judul&quot;: &quot;Workshop Metodologi 2026&quot;,
+      &quot;kategori&quot;: &quot;Kegiatan&quot;,
+      &quot;gambar&quot;: null,
+      &quot;status&quot;: &quot;DRAFT&quot;,
+      &quot;publishedAt&quot;: null,
+      &quot;createdAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;,
+      &quot;penulis&quot;: { &quot;nidn&quot;: &quot;9999999001&quot;, &quot;nama&quot;: &quot;Admin LPPM&quot; }
+    }
+  ],
+  &quot;jumlah&quot;: 1,
+  &quot;perStatus&quot;: { &quot;DRAFT&quot;: 1, &quot;TERBIT&quot;: 3 }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Khusus role ADMIN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Konten sengaja tidak ikut di daftar — hanya diambil saat satu berita dibuka, agar daftar ringan.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/berita</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tulis berita baru — selalu mulai sebagai DRAFT.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>judul</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 255 karakter.</td></tr><tr><td><code>konten</code></td><td><code>text</code></td><td><span class="req-y">ya</span></td><td>Isi berita.</td></tr><tr><td><code>kategori</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 100 karakter.</td></tr><tr><td><code>gambar</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Path gambar, maks. 255 karakter.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berita tersimpan sebagai DRAFT.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/admin/berita dengan body { judul, konten, kategori }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;status&quot;: &quot;DRAFT&quot;, &quot;publishedAt&quot;: null },
+  &quot;message&quot;: &quot;Berita disimpan sebagai DRAFT.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VALIDASI_GAGAL&quot;,
+  &quot;message&quot;: &quot;Judul wajib diisi.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Status selalu DRAFT — klien tidak bisa menentukan status awal.</li><li>Penulis diambil dari sesi, bukan dari body.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-PATCH">PATCH</span><span class="path">/api/admin/berita/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Sunting isi berita yang belum tayang.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>judul</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 255 karakter.</td></tr><tr><td><code>konten</code></td><td><code>text</code></td><td><span class="req-n">tidak</span></td><td>Isi berita.</td></tr><tr><td><code>kategori</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 100 karakter.</td></tr><tr><td><code>gambar</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Path gambar.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berita diperbarui.</td></tr><tr><td><code>404</code></td><td>Berita tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Berita sudah TERBIT — tarik dulu ke DRAFT.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>PATCH /api/admin/berita/ab12… dengan body { judul: &#x27;Judul Baru&#x27; }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;judul&quot;: &quot;Judul Baru&quot;, &quot;status&quot;: &quot;DRAFT&quot; },
+  &quot;message&quot;: &quot;Berita diperbarui.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;SUDAH_TAYANG&quot;,
+  &quot;message&quot;: &quot;Berita yang sudah terbit tidak dapat disunting. Tarik dulu ke DRAFT.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Berita TERBIT tidak bisa disunting: versi yang tayang tidak boleh berubah diam-diam di bawah kaki pembaca yang sedang membacanya.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/berita/:id/ajukan</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ajukan berita dari DRAFT ke REVIEW.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berita masuk tahap REVIEW.</td></tr><tr><td><code>404</code></td><td>Berita tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Transisi tidak sah.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/admin/berita/ab12…/ajukan</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;status&quot;: &quot;REVIEW&quot; },
+  &quot;message&quot;: &quot;Berita diajukan untuk ditinjau.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;TRANSISI_TIDAK_SAH&quot;,
+  &quot;message&quot;: &quot;Berita berstatus TERBIT tidak dapat diubah langsung menjadi REVIEW.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Lompatan DRAFT ke TERBIT ditolak — tinjauan mendahului terbit.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/berita/:id/terbit</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Terbitkan berita dari REVIEW — mulai tayang di publik.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berita terbit; publishedAt terisi.</td></tr><tr><td><code>404</code></td><td>Berita tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Bukan dari REVIEW.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/admin/berita/ab12…/terbit</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: {
+    &quot;id&quot;: &quot;…&quot;,
+    &quot;status&quot;: &quot;TERBIT&quot;,
+    &quot;publishedAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;
+  },
+  &quot;message&quot;: &quot;Berita terbit dan tayang di publik.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;TRANSISI_TIDAK_SAH&quot;,
+  &quot;message&quot;: &quot;Berita berstatus DRAFT. Terbit hanya boleh dari REVIEW.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>publishedAt diisi saat terbit, dan dikosongkan saat ditarik — urutan tayang selalu mengikuti waktu terbit sebenarnya.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/berita/:id/tarik</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Cabut berita dari tayangan publik.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berita kembali DRAFT; hilang dari publik.</td></tr><tr><td><code>404</code></td><td>Berita tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Sudah berstatus DRAFT.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/admin/berita/ab12…/tarik</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;status&quot;: &quot;DRAFT&quot;, &quot;publishedAt&quot;: null },
+  &quot;message&quot;: &quot;Berita ditarik dan tidak lagi tayang.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;TRANSISI_TIDAK_SAH&quot;,
+  &quot;message&quot;: &quot;Berita sudah berstatus DRAFT.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Berlaku untuk TERBIT maupun REVIEW.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/public/berita</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Publik</span></div><p class="desc">Daftar berita tayang — tanpa login.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>halaman</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Nomor halaman, default 1.</td></tr><tr><td><code>per</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Per halaman, default 10, maks. 50.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar berita berstatus TERBIT.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/public/berita</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;judul&quot;: &quot;Workshop Metodologi 2026&quot;,
+      &quot;kategori&quot;: &quot;Kegiatan&quot;,
+      &quot;gambar&quot;: null,
+      &quot;publishedAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;,
+      &quot;penulis&quot;: { &quot;nama&quot;: &quot;Admin LPPM&quot; }
+    }
+  ],
+  &quot;total&quot;: 3,
+  &quot;halaman&quot;: 1,
+  &quot;perHalaman&quot;: 10
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>Hanya status TERBIT. Berita DRAFT/REVIEW tidak pernah muncul.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/public/berita/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Publik</span></div><p class="desc">Rincian satu berita tayang — tanpa login.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Berita lengkap beserta konten.</td></tr><tr><td><code>404</code></td><td>Berita tidak ditemukan atau belum tayang.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/public/berita/ab12…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;berita&quot;: {
+    &quot;id&quot;: &quot;…&quot;,
+    &quot;judul&quot;: &quot;Workshop Metodologi 2026&quot;,
+    &quot;konten&quot;: &quot;LPPM menggelar workshop metodologi…&quot;,
+    &quot;kategori&quot;: &quot;Kegiatan&quot;,
+    &quot;gambar&quot;: null,
+    &quot;publishedAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;,
+    &quot;penulis&quot;: { &quot;nama&quot;: &quot;Admin LPPM&quot; }
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Berita tidak ditemukan.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Berita DRAFT/REVIEW mengembalikan 404, bukan 403 — bila memakai 403, responsnya sendiri membocorkan keberadaan tulisan yang belum tayang.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/galeri</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Daftar foto galeri (semua).</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar foto.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/galeri</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;galeri&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;judul&quot;: &quot;Kegiatan Pengabdian Desa&quot;,
+      &quot;deskripsi&quot;: null,
+      &quot;fotoPath&quot;: &quot;/uploads/galeri/desa-2026.jpg&quot;,
+      &quot;kategori&quot;: &quot;Pengabdian&quot;,
+      &quot;createdAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;
+    }
+  ],
+  &quot;jumlah&quot;: 1
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Khusus role ADMIN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Galeri tidak punya tahap tinjauan — unggahan langsung tayang.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/galeri</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tambah foto ke galeri.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>judul</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 200 karakter.</td></tr><tr><td><code>fotoPath</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Path berkas, maks. 255 karakter.</td></tr><tr><td><code>deskripsi</code></td><td><code>text</code></td><td><span class="req-n">tidak</span></td><td>Keterangan foto.</td></tr><tr><td><code>kategori</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 100 karakter.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Foto ditambahkan.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/admin/galeri dengan body { judul, fotoPath, kategori }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;galeri&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;judul&quot;: &quot;Kegiatan Pengabdian Desa&quot;, &quot;fotoPath&quot;: &quot;/uploads/galeri/desa-2026.jpg&quot; },
+  &quot;message&quot;: &quot;Foto ditambahkan ke galeri.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VALIDASI_GAGAL&quot;,
+  &quot;message&quot;: &quot;Path foto wajib diisi.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>fotoPath adalah lokasi berkas; unggahan berkasnya sendiri ditangani di luar API ini.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/galeri/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus satu foto galeri.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Foto dihapus.</td></tr><tr><td><code>404</code></td><td>Foto tidak ditemukan.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>DELETE /api/admin/galeri/cd34…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;terhapus&quot;: true,
+  &quot;message&quot;: &quot;Foto dihapus dari galeri.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Data tidak ditemukan.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/public/galeri</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Publik</span></div><p class="desc">Daftar foto galeri publik — tanpa login.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>halaman</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Nomor halaman.</td></tr><tr><td><code>per</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Per halaman, default 20, maks. 100.</td></tr><tr><td><code>kategori</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Saring per kategori.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar foto.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/public/galeri?kategori=Pengabdian</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;galeri&quot;: [ { &quot;id&quot;: &quot;…&quot;, &quot;judul&quot;: &quot;Kegiatan Pengabdian Desa&quot;, &quot;fotoPath&quot;: &quot;/uploads/galeri/desa-2026.jpg&quot; } ],
+  &quot;total&quot;: 1,
+  &quot;halaman&quot;: 1,
+  &quot;perHalaman&quot;: 20
+}</code></pre></div></div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/dokumen-publik</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Daftar dokumen publik (khusus ADMIN).</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar dokumen.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/dokumen-publik</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;dokumen&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;nama&quot;: &quot;Panduan Penulisan Proposal&quot;,
+      &quot;filePath&quot;: &quot;/uploads/dok/panduan.pdf&quot;,
+      &quot;kategori&quot;: &quot;Panduan&quot;,
+      &quot;createdAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;
+    }
+  ],
+  &quot;jumlah&quot;: 1
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Khusus role ADMIN.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/dokumen-publik</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tambah dokumen publik.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>nama</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Maks. 200 karakter.</td></tr><tr><td><code>filePath</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>Path berkas, maks. 255 karakter.</td></tr><tr><td><code>kategori</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 100 karakter.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Dokumen ditambahkan.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/admin/dokumen-publik dengan body { nama, filePath, kategori }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;dokumen&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;nama&quot;: &quot;Panduan Penulisan Proposal&quot; },
+  &quot;message&quot;: &quot;Dokumen ditambahkan.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;VALIDASI_GAGAL&quot;,
+  &quot;message&quot;: &quot;Path berkas wajib diisi.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/dokumen-publik/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus dokumen publik.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Dokumen dihapus.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>DELETE /api/admin/dokumen-publik/ef56…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;terhapus&quot;: true,
+  &quot;message&quot;: &quot;Dokumen dihapus.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Data tidak ditemukan.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/public/dokumen</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Publik</span></div><p class="desc">Daftar dokumen publik — tanpa login.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>kategori</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Saring per kategori.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar dokumen.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/public/dokumen</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;dokumen&quot;: [ { &quot;id&quot;: &quot;…&quot;, &quot;nama&quot;: &quot;Panduan Penulisan Proposal&quot;, &quot;filePath&quot;: &quot;/uploads/dok/panduan.pdf&quot; } ],
+  &quot;total&quot;: 1
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>Kunci hitungan memakai total — sama dengan /api/public/berita dan /api/public/galeri.</li></ul></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Notifikasi &amp; Jejak Audit</h4><span class="modul">M7 &amp; M9</span><div class="ringkas">Notifikasi in-app otomatis pada setiap transisi status, lonceng notifikasi, serta jejak audit append-only. Sudah dibangun dan teruji nyata.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/notifikasi</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role terautentikasi</span></div><p class="desc">Daftar notifikasi milik sendiri + jumlah belum dibaca.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>halaman</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Nomor halaman, default 1.</td></tr><tr><td><code>per</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Per halaman, default 20, maks. 100.</td></tr><tr><td><code>belumDibaca</code></td><td><code>boolean</code></td><td><span class="req-n">tidak</span></td><td>true untuk menyaring yang belum dibaca.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar notifikasi dan belumDibaca.</td></tr><tr><td><code>401</code></td><td>Belum login.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/notifikasi?belumDibaca=true</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;notifikasi&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;judul&quot;: &quot;Anda ditugaskan sebagai Reviewer 1&quot;,
+      &quot;pesan&quot;: &quot;Anda ditugaskan menilai proposal \&quot;…\&quot; sebagai Reviewer 1 (blind review).&quot;,
+      &quot;link&quot;: &quot;/review&quot;,
+      &quot;isRead&quot;: false,
+      &quot;createdAt&quot;: &quot;2026-10-29T04:30:00.000Z&quot;
+    }
+  ],
+  &quot;total&quot;: 1,
+  &quot;halaman&quot;: 1,
+  &quot;perHalaman&quot;: 20,
+  &quot;belumDibaca&quot;: 1
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;UNAUTHENTICATED&quot;,
+  &quot;message&quot;: &quot;Sesi tidak ditemukan.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Seluruh query membawa userId = pengguna saat ini di level where — tidak mungkin membaca notifikasi orang lain.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/notifikasi/:id/baca</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role terautentikasi</span></div><p class="desc">Tandai satu notifikasi sudah dibaca.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>ditandai true dan belumDibaca terbaru.</td></tr><tr><td><code>404</code></td><td>Notifikasi tidak ditemukan atau bukan milik sendiri.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/notifikasi/12ab…/baca</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;ditandai&quot;: true,
+  &quot;belumDibaca&quot;: 0
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Notifikasi tidak ditemukan.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>userId ikut dalam where: notifikasi orang lain tidak menghasilkan baris yang cocok, sehingga jawabannya 404 — sama seperti yang memang tidak ada. Endpoint ini tidak membocorkan keberadaan notifikasi orang lain.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/notifikasi/baca-semua</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role terautentikasi</span></div><p class="desc">Tandai seluruh notifikasi milik sendiri sudah dibaca.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Jumlah notifikasi yang ditandai.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/notifikasi/baca-semua</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;jumlah&quot;: 2,
+  &quot;message&quot;: &quot;2 notifikasi ditandai sudah dibaca.&quot;
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>Hanya menyentuh milik sendiri — where selalu memuat userId.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/riwayat</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Ketua pengusul, Kaprodi, ADMIN</span></div><p class="desc">Timeline audit satu proposal.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar peristiwa terurut waktu.</td></tr><tr><td><code>403</code></td><td>Bukan ketua, Kaprodi, atau Admin.</td></tr><tr><td><code>404</code></td><td>Proposal tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/riwayat</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;proposal&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;judul&quot;: &quot;…&quot;, &quot;status&quot;: &quot;LOLOS&quot; },
+  &quot;jumlah&quot;: 7,
+  &quot;riwayat&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;waktu&quot;: &quot;2026-10-29T04:30:00.000Z&quot;,
+      &quot;aksi&quot;: &quot;submit&quot;,
+      &quot;keterangan&quot;: &quot;Proposal dikirim — status MENUNGGU_VERIFIKASI_KAPRODI.&quot;,
+      &quot;oleh&quot;: { &quot;nidn&quot;: &quot;0412345680&quot;, &quot;nama&quot;: &quot;Dr. Dosen Satu&quot; },
+      &quot;proposal&quot;: { &quot;status&quot;: &quot;LOLOS&quot; }
+    },
+    { &quot;aksi&quot;: &quot;hasil_kombinasi&quot;, &quot;keterangan&quot;: &quot;TERIMA_TERIMA -&gt; status LOLOS.&quot; }
+  ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Riwayat proposal hanya dapat dilihat ketua pengusul, Kaprodi, dan Admin.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Reviewer ditolak meski proposal itu sudah ia nilai — blind review tidak boleh membuka jejak siapa penilai lain.</li><li>Ketua pengusul selalu boleh melihat riwayat proposalnya sendiri.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/audit</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Jejak audit global, terurut waktu terbaru.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>halaman</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Nomor halaman, default 1.</td></tr><tr><td><code>per</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Per halaman, default 50, maks. 200.</td></tr><tr><td><code>aksi</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Saring per kode aksi.</td></tr><tr><td><code>proposalId</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Saring per proposal.</td></tr><tr><td><code>nidn</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Saring per pelaku.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar log, total, dan pilihanAksi.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/audit?aksi=verifikasi&amp;nidn=0412345678</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;audit&quot;: [
+    {
+      &quot;id&quot;: &quot;…&quot;,
+      &quot;waktu&quot;: &quot;2026-10-29T04:30:00.000Z&quot;,
+      &quot;aksi&quot;: &quot;verifikasi&quot;,
+      &quot;keterangan&quot;: &quot;Tahap KAPRODI: SETUJUI (status MENUNGGU_VERIFIKASI_ADMIN).&quot;,
+      &quot;oleh&quot;: { &quot;nidn&quot;: &quot;0412345678&quot;, &quot;nama&quot;: &quot;Kaprodi TI&quot; },
+      &quot;proposal&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;judul&quot;: &quot;…&quot;, &quot;status&quot;: &quot;MENUNGGU_REVIEW&quot; }
+    }
+  ],
+  &quot;total&quot;: 1,
+  &quot;halaman&quot;: 1,
+  &quot;perHalaman&quot;: 50,
+  &quot;pilihanAksi&quot;: [
+    &quot;submit&quot;, &quot;verifikasi&quot;, &quot;tugaskan_reviewer&quot;, &quot;review&quot;,
+    &quot;hasil_kombinasi&quot;, &quot;keputusan_rapat&quot;, &quot;isi_sumber_dana&quot;,
+    &quot;generate_sk&quot;, &quot;generate_st&quot;, &quot;buat_proposal&quot;
+  ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Jejak audit khusus role ADMIN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Append-only: tidak ada endpoint yang mengubah atau menghapus activity_logs. Kalau penulisnya bisa menghapus catatannya, isinya bukan lagi bukti.</li><li>pilihanAksi mengembalikan kode aksi baku sehingga filter antarmuka tidak perlu menebak.</li></ul></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Master Data &amp; Form Dinamis (bagian per item)</h4><span class="modul">M8</span><div class="ringkas">Endpoint per-item untuk form field, periode, dan program studi. Bagian daftar sudah tercatat di modul M1/M8.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/form-field/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Baca satu konfigurasi field.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Konfigurasi field.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/form-field/ab12…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;field&quot;: {
+    &quot;id&quot;: &quot;…&quot;,
+    &quot;kode&quot;: &quot;bidang_riset&quot;,
+    &quot;label&quot;: &quot;Bidang Riset&quot;,
+    &quot;tipe&quot;: &quot;select&quot;,
+    &quot;wajib&quot;: true,
+    &quot;opsi&quot;: { &quot;pilihan&quot;: [ &quot;Informatika&quot;, &quot;Sistem Informasi&quot; ] }
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Data tidak ditemukan.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-PUT">PUT</span><span class="path">/api/admin/form-field/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ubah konfigurasi field.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>label</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Nama tampilan.</td></tr><tr><td><code>wajib</code></td><td><code>boolean</code></td><td><span class="req-n">tidak</span></td><td>Wajib diisi atau tidak.</td></tr><tr><td><code>opsi</code></td><td><code>object</code></td><td><span class="req-n">tidak</span></td><td>Untuk tipe select/checkbox: { pilihan: [...] }.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Field diperbarui.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Tipe tidak mendukung opsi.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>PUT /api/admin/form-field/ab12… dengan body { wajib: false }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;field&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;label&quot;: &quot;Bidang Riset&quot;, &quot;wajib&quot;: false }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;OPSITIDAK_RELEVAN&quot;,
+  &quot;message&quot;: &quot;Field bertipe teks tidak memerlukan opsi pilihan.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Mengubah wajib tidak membatalkan proposal yang sudah ada — hanya berlaku untuk pengisian berikutnya.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/form-field/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus konfigurasi field.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Field dihapus.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Masih dipakai nilai pengisian proposal.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>DELETE /api/admin/form-field/ab12…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Field dihapus.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;IN_USE&quot;,
+  &quot;message&quot;: &quot;Field masih dipakai 8 data dan tidak dapat dihapus.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Penghitungan dipakai dilakukan lebih dulu sehingga pesannya jelas, bukan error FK 500.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/periode/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Baca satu periode akademik.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Periode.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/periode/7bd43fe1…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: {
+    &quot;id&quot;: &quot;…&quot;,
+    &quot;nama&quot;: &quot;2027/2028 Ganjil&quot;,
+    &quot;tahunMulai&quot;: 2027,
+    &quot;tahunSelesai&quot;: 2028,
+    &quot;isActive&quot;: true
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Data tidak ditemukan.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-PUT">PUT</span><span class="path">/api/admin/periode/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ubah periode akademik.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>nama</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Nama tampilan, maks. 50 karakter.</td></tr><tr><td><code>tahunMulai</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Tahun mulai.</td></tr><tr><td><code>tahunSelesai</code></td><td><code>number</code></td><td><span class="req-n">tidak</span></td><td>Tahun selesai.</td></tr><tr><td><code>isActive</code></td><td><code>boolean</code></td><td><span class="req-n">tidak</span></td><td>Jadikan periode aktif.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Periode diperbarui.</td></tr><tr><td><code>400</code></td><td>Validasi gagal — tahunSelesai harus lebih besar.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>PUT /api/admin/periode/7bd43fe1… dengan body { isActive: true }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;periode&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;nama&quot;: &quot;2027/2028 Ganjil&quot;, &quot;isActive&quot;: true }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;TAHUN_TIDAK_SAH&quot;,
+  &quot;message&quot;: &quot;tahunSelesai harus lebih besar dari tahunMulai.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Menjadikan satu periode aktif otomatis menonaktifkan periode lain — selalu ada tepat satu yang aktif.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/periode/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus periode akademik.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Periode dihapus.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Masih dipakai proposal.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>DELETE /api/admin/periode/7bd43fe1…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Periode dihapus.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;IN_USE&quot;,
+  &quot;message&quot;: &quot;Periode masih dipakai 12 proposal dan tidak dapat dihapus.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/prodi/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Baca satu program studi.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Program studi.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>403</code></td><td>Role selain ADMIN.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/admin/prodi/3e374d05…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;prodi&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;kode&quot;: &quot;TI&quot;, &quot;nama&quot;: &quot;Teknik Informatika&quot; }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Data tidak ditemukan.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-PUT">PUT</span><span class="path">/api/admin/prodi/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ubah program studi.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>kode</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 20 karakter, wajib unik.</td></tr><tr><td><code>nama</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>Maks. 100 karakter.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Program studi diperbarui.</td></tr><tr><td><code>400</code></td><td>Validasi gagal.</td></tr><tr><td><code>404</code></td><td>Tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Kode sudah terpakai.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>PUT /api/admin/prodi/3e374d05… dengan body { nama: &#x27;Teknologi Informasi&#x27; }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;prodi&quot;: { &quot;id&quot;: &quot;…&quot;, &quot;kode&quot;: &quot;TI&quot;, &quot;nama&quot;: &quot;Teknologi Informasi&quot; }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;CONFLICT&quot;,
+  &quot;message&quot;: &quot;Kode \&quot;MI\&quot; sudah dipakai.&quot;
+}</code></pre></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-doc)"></div><h4>Proposal &amp; Tim (bagian per item)</h4><span class="modul">M2</span><div class="ringkas">Pengelolaan anggota tim dan baca dokumen per proposal.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/anggota</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role terautentikasi</span></div><p class="desc">Daftar anggota tim satu proposal.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar anggota terurut urutan.</td></tr><tr><td><code>404</code></td><td>Proposal tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/anggota</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;anggota&quot;: [
+    {
+      &quot;urutan&quot;: 1,
+      &quot;peran&quot;: &quot;ANGGOTA&quot;,
+      &quot;user&quot;: { &quot;nidn&quot;: &quot;0412345680&quot;, &quot;nama&quot;: &quot;Dr. Dosen Satu&quot; }
+    },
+    {
+      &quot;urutan&quot;: 2,
+      &quot;peran&quot;: &quot;ANGGOTA&quot;,
+      &quot;user&quot;: { &quot;nidn&quot;: &quot;0412345681&quot;, &quot;nama&quot;: &quot;Dr. Dosen Dua&quot; }
+    }
+  ],
+  &quot;jumlah&quot;: 2
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>Ketua pengusul tidak tampil sebagai anggota — dia sudah tercatat di field dosenId.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/proposal/:id/anggota</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Hanya ketua pengusul</span></div><p class="desc">Tambah anggota tim.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>nidn</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>NIDN dosen yang ditambahkan.</td></tr><tr><td><code>peran</code></td><td><code>enum</code></td><td><span class="req-n">tidak</span></td><td>ANGGOTA (default).</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Anggota ditambahkan.</td></tr><tr><td><code>400</code></td><td>Validasi gagal — dosen tidak ada.</td></tr><tr><td><code>403</code></td><td>Bukan ketua pengusul.</td></tr><tr><td><code>409</code></td><td>Sudah menjadi anggota atau ketua.</td></tr><tr><td><code>412</code></td><td>Proposal sudah terkirim.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>POST /api/proposal/2093cc76…/anggota dengan body { nidn: &#x27;0412345681&#x27; }</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;anggota&quot;: { &quot;urutan&quot;: 2, &quot;peran&quot;: &quot;ANGGOTA&quot;, &quot;user&quot;: { &quot;nidn&quot;: &quot;0412345681&quot; } },
+  &quot;message&quot;: &quot;Anggota ditambahkan.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;SUDAH_ANGGOTA&quot;,
+  &quot;message&quot;: &quot;Dosen tersebut sudah menjadi anggota tim.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Urutan dihitung otomatis dari jumlah anggota, bukan dikirim klien.</li><li>Hanya ketua pengusul boleh mengubah susunan tim.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/proposal/:id/anggota/:userId</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Hanya ketua pengusul</span></div><p class="desc">Keluarkan satu anggota tim.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Anggota dikeluarkan.</td></tr><tr><td><code>403</code></td><td>Bukan ketua pengusul.</td></tr><tr><td><code>404</code></td><td>Anggota tidak ditemukan.</td></tr><tr><td><code>412</code></td><td>Proposal sudah terkirim.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>DELETE /api/proposal/2093cc76…/anggota/9f21…</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;message&quot;: &quot;Anggota dikeluarkan.&quot;
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;PROPOSAL_Terkirim&quot;,
+  &quot;message&quot;: &quot;Anggota tim hanya dapat diubah sebelum proposal dikirim.&quot;
+}</code></pre></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/dokumen/st.pdf</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Semua role terautentikasi</span></div><p class="desc">Unduh Surat Tugas (PDF A4).</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>application/pdf — naskah dinas.</td></tr><tr><td><code>404</code></td><td>Dokumen atau nomor belum terbit.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/dokumen/st.pdf</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>(berkas PDF, sekitar 45 KB, halaman A4)</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOMOR_BELUM_ADA&quot;,
+  &quot;message&quot;: &quot;Surat Tugas belum terbit.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>ST mensyaratkan SK terbit lebih dulu — surat tugas tidak mendahului keputusan.</li><li>Dasar hukum di dalamnya merujuk nomor SK.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/proposal/:id/reviewer</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Khusus REVIEWER &amp; ADMIN</span></div><p class="desc">Baca penugasan reviewer proposal.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Penugasan reviewer 1 dan 2.</td></tr><tr><td><code>403</code></td><td>Role selain REVIEWER/ADMIN.</td></tr><tr><td><code>404</code></td><td>Proposal tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>GET /api/proposal/2093cc76…/reviewer</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;penugasan&quot;: [
+    { &quot;urutanReviewer&quot;: 1, &quot;nilaiSaya&quot;: 88, &quot;rekomendasiSaya&quot;: &quot;TERIMA&quot;, &quot;progres&quot;: { &quot;sudahDinilai&quot;: 1 } },
+    { &quot;urutanReviewer&quot;: 2, &quot;nilaiSaya&quot;: null, &quot;rekomendasiSaya&quot;: null, &quot;progres&quot;: { &quot;sudahDinilai&quot;: 0 } }
+  ]
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Rute ini khusus role: REVIEWER, ADMIN&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Reviewer tidak melihat identitas maupun nilai reviewer lain — blind review.</li><li>progres hanya berisi jumlah, bukan skor.</li></ul></div></div><div class="grup"><div class="grup-head"><div class="bar" style="background:var(--cat-publik)"></div><h4>Kuisioner Publik</h4><span class="modul">M6</span><div class="ringkas">Kuisioner ditulis ADMIN, dibuka untuk diisi publik, lalu ditutup. Jawaban divalidasi terhadap daftar pertanyaan yang tersimpan di database — bukan terhadap bentuk yang dikirim klien.</div></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/kuisioner</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Daftar seluruh kuisioner beserta jumlah jawabannya.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar kuisioner diterima, lengkap dengan `perStatus` berisi hitung per status.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>-</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: [
+      {
+        &quot;id&quot;: &quot;9a1f2c44-0000-0000-0000-000000000001&quot;,
+        &quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot;,
+        &quot;deskripsi&quot;: &quot;Isilah sesuai pengalaman Anda.&quot;,
+        &quot;pertanyaan&quot;: [
+          { &quot;kode&quot;: &quot;q1&quot;, &quot;pertanyaan&quot;: &quot;Bagaimana kecepatan layanan?&quot;, &quot;tipe&quot;: &quot;skala&quot;, &quot;wajib&quot;: true }
+        ],
+        &quot;status&quot;: &quot;AKTIF&quot;,
+        &quot;pembuat&quot;: { &quot;nidn&quot;: &quot;9999999001&quot;, &quot;nama&quot;: &quot;Administrator LPPM&quot; },
+        &quot;_count&quot;: { &quot;jawaban&quot;: 3 }
+      }
+    ],
+    &quot;jumlah&quot;: 1,
+    &quot;perStatus&quot;: { &quot;AKTIF&quot;: 1 }
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Khusus role ADMIN.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>`_count.jawaban` datang dari relasi Prisma, bukan dihitung manual di lapisan aplikasi — angkanya tidak mungkin berbeda dari isi tabel.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/kuisioner</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Buat kuisioner baru dalam status DRAFT.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>judul</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>1–200 karakter.</td></tr><tr><td><code>deskripsi</code></td><td><code>string|null</code></td><td><span class="req-n">tidak</span></td><td>Tampilan di halaman publik.</td></tr><tr><td><code>pertanyaan</code></td><td><code>array</code></td><td><span class="req-n">tidak</span></td><td>Daftar pertanyaan; kosong bila disusun belakangan.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Kuisioner dibuat sebagai DRAFT.</td></tr><tr><td><code>400</code></td><td>Field wajib kosong atau tipe tidak sesuai.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{&quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot;, &quot;deskripsi&quot;: &quot;Isilah sesuai pengalaman Anda.&quot;, &quot;pertanyaan&quot;: [{&quot;kode&quot;: &quot;q1&quot;, &quot;pertanyaan&quot;: &quot;Bagaimana kecepatan layanan?&quot;, &quot;tipe&quot;: &quot;skala&quot;, &quot;wajib&quot;: true}, {&quot;kode&quot;: &quot;q2&quot;, &quot;pertanyaan&quot;: &quot;Aspek apa yang perlu diperbaiki?&quot;, &quot;tipe&quot;: &quot;pilihan_ganda&quot;, &quot;pilihan&quot;: [&quot;Kecepatan&quot;, &quot;Kejelasan informasi&quot;, &quot;SOP&quot;], &quot;wajib&quot;: true}, {&quot;kode&quot;: &quot;q3&quot;, &quot;pertanyaan&quot;: &quot;Saran tambahan&quot;, &quot;tipe&quot;: &quot;isian_panjang&quot;}]}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: {
+      &quot;id&quot;: &quot;9a1f2c44-0000-0000-0000-000000000001&quot;,
+      &quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot;,
+      &quot;status&quot;: &quot;DRAFT&quot;,
+      &quot;pembuat&quot;: { &quot;nidn&quot;: &quot;9999999001&quot;, &quot;nama&quot;: &quot;Administrator LPPM&quot; },
+      &quot;_count&quot;: { &quot;jawaban&quot;: 0 }
+    },
+    &quot;message&quot;: &quot;Kuisioner dibuat sebagai DRAFT.&quot;
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;ZOD_ERROR&quot;,
+  &quot;message&quot;: &quot;Data tidak valid.&quot;,
+  &quot;errors&quot;: [
+    { &quot;path&quot;: &quot;judul&quot;, &quot;message&quot;: &quot;Judul wajib diisi.&quot; }
+  ]
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Kuisioner baru **selalu DRAFT**. Tidak ada cara membuatnya langsung AKTIF — pertanyaan harus diperiksa dulu lewat endpoint aktifkan.</li><li>Bentuk pertanyaan didukung: `pilihan_ganda`, `skala`, `isian_pendek`, `isian_panjang`.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-PATCH">PATCH</span><span class="path">/api/admin/kuisioner/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ubah judul, deskripsi, atau daftar pertanyaan.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>judul</code></td><td><code>string</code></td><td><span class="req-n">tidak</span></td><td>1–200 karakter.</td></tr><tr><td><code>deskripsi</code></td><td><code>string|null</code></td><td><span class="req-n">tidak</span></td><td>Boleh dikosongkan.</td></tr><tr><td><code>pertanyaan</code></td><td><code>array</code></td><td><span class="req-n">tidak</span></td><td>Mengganti seluruh daftar, bukan menambah per item.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Kuisioner diperbarui.</td></tr><tr><td><code>404</code></td><td>Kuisioner tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Sudah ada jawaban, kuisioner terkunci.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{&quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM (Revisi)&quot;}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: { &quot;id&quot;: &quot;9a1f…&quot;, &quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM (Revisi)&quot;, &quot;status&quot;: &quot;DRAFT&quot; },
+    &quot;message&quot;: &quot;Kuisioner diperbarui.&quot;
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;SUDAH_ADA_JAWABAN&quot;,
+  &quot;message&quot;: &quot;Kuisioner sudah diisi 3 orang dan tidak dapat disunting.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Begitu ada satu jawaban masuk, kuisioner tidak dapat disunting — mengubah pertanyaan akan membuat jawaban lama kehilangan artinya.</li><li>Daftar diganti seluruhnya, bukan ditambah per item, supaya tidak ada pertanyaan yatim yang masih menunjuk kode lama.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/kuisioner/:id/aktifkan</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Buka kuisioner agar publik dapat mengisinya.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Kuisioner berstatus AKTIF.</td></tr><tr><td><code>404</code></td><td>Kuisioner tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Sudah AKTIF, atau belum punya pertanyaan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>-</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: { &quot;id&quot;: &quot;9a1f…&quot;, &quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot;, &quot;status&quot;: &quot;AKTIF&quot; },
+    &quot;message&quot;: &quot;Kuisioner dibuka untuk diisi publik.&quot;
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;BELUM_ADA_PERTANYAAN&quot;,
+  &quot;message&quot;: &quot;Kuisioner belum memiliki pertanyaan dan tidak dapat dibuka untuk diisi.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Kuisioner tanpa pertanyaan ditolak — mengaktifkan halaman kosong hanya membingungkan pengisi.</li><li>Jalur transisi: DRAFT → AKTIF dan SELESAI → AKTIF. Tidak ada lompatan lain.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/admin/kuisioner/:id/selesaikan</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Tutup penerimaan jawaban.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Kuisioner berstatus SELESAI.</td></tr><tr><td><code>404</code></td><td>Kuisioner tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Bukan dari status AKTIF.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>-</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: { &quot;id&quot;: &quot;9a1f…&quot;, &quot;status&quot;: &quot;SELESAI&quot; },
+    &quot;message&quot;: &quot;Kuisioner ditutup; jawaban tak lagi diterima.&quot;
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;TRANSISI_TIDAK_SAH&quot;,
+  &quot;message&quot;: &quot;Kuisioner berstatus DRAFT tidak dapat dibuka.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>SELESAI dapat diaktifkan kembali bila ternyata masa isian diperpanjang.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-DELETE">DELETE</span><span class="path">/api/admin/kuisioner/:id</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Hapus kuisioner beserta seluruh jawabannya.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Kuisioner dihapus.</td></tr><tr><td><code>404</code></td><td>Kuisioner tidak ditemukan.</td></tr><tr><td><code>409</code></td><td>Sudah ada jawaban, tidak dapat dihapus.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>-</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: { &quot;terhapus&quot;: true, &quot;message&quot;: &quot;Kuisioner dihapus.&quot; }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;SUDAH_ADA_JAWABAN&quot;,
+  &quot;message&quot;: &quot;Kuisioner sudah diisi 3 orang dan tidak dapat dihapus.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Jawaban adalah data pengumpulan. Menghapus kuisioner berarti membuangnya, sehingga ditolak begitu ada satu jawaban.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/admin/kuisioner/:id/hasil</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">ADMIN</span></div><p class="desc">Ringkasan jawaban per pertanyaan.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Ringkasan jawaban diterima.</td></tr><tr><td><code>404</code></td><td>Kuisioner tidak ditemukan.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>-</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: { &quot;id&quot;: &quot;9a1f…&quot;, &quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot;, &quot;status&quot;: &quot;SELESAI&quot; },
+    &quot;jumlahPengisi&quot;: 3,
+    &quot;perPertanyaan&quot;: [
+      { &quot;kode&quot;: &quot;q1&quot;, &quot;tipe&quot;: &quot;skala&quot;, &quot;jumlahDijawab&quot;: 3, &quot;jumlahKosong&quot;: 0, &quot;frekuensi&quot;: { &quot;4&quot;: 2, &quot;5&quot;: 1 }, &quot;contohJawaban&quot;: null },
+      { &quot;kode&quot;: &quot;q3&quot;, &quot;tipe&quot;: &quot;isian_panjang&quot;, &quot;jumlahDijawab&quot;: 2, &quot;jumlahKosong&quot;: 1, &quot;frekuensi&quot;: null, &quot;contohJawaban&quot;: [&quot;Tolong upload panduan PDF.&quot;, &quot;Tambah jam konsultasi&quot;] }
+    ]
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Kuisioner tidak ditemukan.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Pilihan ganda dan skala dihitung frekuensinya; isian panjang dikumpulkan apa adanya (maks 5 contoh) — frekuensi teks bebas tidak bermakna.</li><li>`jumlahKosong` adalah selisih jumlah pengisi dengan yang menjawab pertanyaan ini, sehingga pertanyaan opsional yang banyak dilewati langsung terlihat.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-GET">GET</span><span class="path">/api/public/kuisioner</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Tidak perlu (publik)</span></div><p class="desc">Daftar kuisioner berstatus AKTIF beserta pertanyaannya.</p><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Daftar kuisioner AKTIF diterima; kosong bila tidak ada yang aktif.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>-</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;kuisioner&quot;: [
+      {
+        &quot;id&quot;: &quot;9a1f…&quot;,
+        &quot;judul&quot;: &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot;,
+        &quot;deskripsi&quot;: &quot;Isilah sesuai pengalaman Anda.&quot;,
+        &quot;pertanyaan&quot;: [
+          { &quot;kode&quot;: &quot;q1&quot;, &quot;pertanyaan&quot;: &quot;Bagaimana kecepatan layanan?&quot;, &quot;tipe&quot;: &quot;skala&quot;, &quot;wajib&quot;: true },
+          { &quot;kode&quot;: &quot;q2&quot;, &quot;pertanyaan&quot;: &quot;Aspek apa yang perlu diperbaiki?&quot;, &quot;tipe&quot;: &quot;pilihan_ganda&quot;, &quot;pilihan&quot;: [&quot;Kecepatan&quot;, &quot;Kejelasan informasi&quot;, &quot;SOP&quot;], &quot;wajib&quot;: true }
+        ],
+        &quot;updatedAt&quot;: &quot;2026-10-29T09:14:02.550Z&quot;,
+        &quot;jumlahPengisi&quot;: 3
+      }
+    ],
+    &quot;jumlah&quot;: 1
+  }
+}</code></pre></div></div><div class="lbl">Catatan</div><ul class="notes"><li>DRAFT dan SELESAI tidak ikut tampil — mengembalikan daftar kosong, bukan error.</li><li>Daftar pertanyaan ikut dikirim ke publik sehingga halaman pengisian tidak perlu memanggil endpoint lain.</li></ul></div><div class="ep"><div class="ep-line"><span class="met m-POST">POST</span><span class="path">/api/public/kuisioner/:id/isi</span><span class="badge b-ok">Terverifikasi</span><span class="badge b-auth">Tidak perlu (publik)</span></div><p class="desc">Kirim jawaban kuisioner.</p><div class="lbl">Body permintaan</div><table><thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead><tbody><tr><td><code>namaPengisi</code></td><td><code>string</code></td><td><span class="req-y">ya</span></td><td>1–150 karakter.</td></tr><tr><td><code>jawaban</code></td><td><code>object</code></td><td><span class="req-y">ya</span></td><td>Peta kode pertanyaan → nilai jawaban.</td></tr></tbody></table><div class="lbl">Kode respons</div><table><thead><tr><th>Status</th><th>Arti</th></tr></thead><tbody><tr><td><code>200</code></td><td>Jawaban tercatat.</td></tr><tr><td><code>400</code></td><td>Pertanyaan tak dikenal ATAU pertanyaan wajib kosong.</td></tr><tr><td><code>404</code></td><td>Kuisioner tidak ditemukan atau bukan AKTIF.</td></tr></tbody></table><div class="lbl">Contoh</div><div class="two"><div><div class="lbl" style="margin-top:0">Permintaan</div><pre><code>{&quot;namaPengisi&quot;: &quot;Budi Santoso&quot;, &quot;jawaban&quot;: {&quot;q1&quot;: &quot;4&quot;, &quot;q2&quot;: &quot;Kejelasan informasi&quot;, &quot;q3&quot;: &quot;Tolong upload panduan PDF.&quot;}}</code></pre></div><div><div class="lbl" style="margin-top:0">Respons sukses</div><pre><code>{
+  &quot;ok&quot;: true,
+  &quot;data&quot;: {
+    &quot;jawaban&quot;: {
+      &quot;id&quot;: &quot;b7c2a100-0000-0000-0000-000000000002&quot;,
+      &quot;namaPengisi&quot;: &quot;Budi Santoso&quot;,
+      &quot;createdAt&quot;: &quot;2026-10-29T09:20:44.118Z&quot;
+    },
+    &quot;message&quot;: &quot;Jawaban untuk &quot;Kepuasan Mahasiswa terhadap Layanan LPPM 2026&quot; tercatat.&quot;
+  }
+}</code></pre></div></div><div class="lbl">Respons kegagalan</div><pre><code>{
+  &quot;ok&quot;: false,
+  &quot;code&quot;: &quot;JAWABAN_WAJIB_KOSONG&quot;,
+  &quot;message&quot;: &quot;Pertanyaan wajib belum dijawab: q2.&quot;
+}</code></pre><div class="lbl">Catatan</div><ul class="notes"><li>Jawaban divalidasi terhadap daftar pertanyaan yang tersimpan di database, bukan terhadap bentuk yang dikirim klien — klien tidak bisa memaksa pertanyaan tambahan, dan pertanyaan wajib tidak bisa dilewati.</li><li>Kuisioner bukan AKTIF menghasilkan **404, bukan 403** — bila memakai 403, responsnya sendiri membocorkan keberadaan kuisioner yang belum tayang atau sudah ditutup.</li></ul></div></div><h3 class="sec" id="error">Kode error</h3><div class="grup"><div class="ep"><table><thead><tr><th>Kode</th><th>HTTP</th><th>Arti</th></tr></thead><tbody><tr><td><code>VALIDATION</code></td><td><code>400</code></td><td>Body permintaan tidak lolos validasi Zod.</td></tr><tr><td><code>UNAUTHORIZED</code></td><td><code>401</code></td><td>Kredensial salah (NIDN atau password).</td></tr><tr><td><code>UNAUTHENTICATED</code></td><td><code>401</code></td><td>Tidak ada sesi pada permintaan yang dilindungi.</td></tr><tr><td><code>SESSION_INVALID</code></td><td><code>401</code></td><td>Token kedaluwarsa atau rusak. Cookie dibersihkan otomatis.</td></tr><tr><td><code>FORBIDDEN</code></td><td><code>403</code></td><td>Sesi valid tetapi role tidak berwenang.</td></tr><tr><td><code>ACCOUNT_DISABLED</code></td><td><code>403</code></td><td>Akun berstatus NONAKTIF.</td></tr><tr><td><code>NOT_FOUND</code></td><td><code>404</code></td><td>Sumber daya tidak ditemukan.</td></tr><tr><td><code>CONFLICT</code></td><td><code>409</code></td><td>Bentrokan kunci unik (duplikat).</td></tr><tr><td><code>INTERNAL</code></td><td><code>500</code></td><td>Kesalahan tak terduga di sisi server.</td></tr></tbody></table></div></div><footer>Sistem Informasi LPPM — STIKOM PGRI Banyuwangi · Dokumentasi API v1.0 · 28 Oktober 2026<br>
+    Dihasilkan otomatis dari sumber data bersama sehingga isi HTML, PDF, dan DOCX selalu identik.</footer>
+</div></body></html>

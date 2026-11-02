@@ -1,0 +1,425 @@
+{
+  "project": "Sistem Informasi LPPM — STIKOM PGRI Banyuwangi",
+  "subtitle": "Backend Engineering Progress Roadmap (Next.js 14 + Prisma 5 + MySQL)",
+  "owner": "Kiky Restu Noviansyah",
+  "partner": "Scendy Aprianda (Frontend)",
+  "updated": "2026-10-29 09:47:01",
+  "phases": [
+    {
+      "id": "f0",
+      "no": "Fase 0",
+      "title": "Fondasi Environment",
+      "goal": "Akses database, inisialisasi project, Prisma client siap pakai.",
+      "items": [
+        {
+          "id": "0-1",
+          "title": "Setup database MySQL & user khusus",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "MariaDB 11.x, Prisma db execute",
+          "summary": "Database `lppm` + user `lppm` dibuat, izin CREATE untuk shadow database Prisma diberikan, koneksi terverifikasi.",
+          "entry": "entries/0-1-setup-database.md",
+          "shot": "screenshots/0-1-setup-database.png"
+        },
+        {
+          "id": "0-2",
+          "title": "Inisialisasi project Next.js 14 + dependensi",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "npm, Next.js 14.2.15, Prisma 5.22.0",
+          "summary": "package.json final (next, @prisma/client, zod, jose, bcryptjs), 34 paket terpasang.",
+          "entry": "entries/0-2-init-project.md",
+          "shot": "screenshots/0-2-init-project.png"
+        },
+        {
+          "id": "0-3",
+          "title": "Prisma Client generate",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "prisma generate",
+          "summary": "Client v5.22.0 tergenerate; npm block install-script ditangani dengan generate manual.",
+          "entry": "entries/0-3-prisma-client.md",
+          "shot": "screenshots/0-3-prisma-client.png"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f1",
+      "no": "Fase 1",
+      "title": "Skema & Database",
+      "goal": "18 tabel ERD terpasang penuh beserta seed data awal 7 role.",
+      "items": [
+        {
+          "id": "1-1",
+          "title": "schema.prisma — 18 model tervalidasi",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "prisma validate",
+          "summary": "18 model, 10 enum state-machine, 25 @relation — lolos validasi Prisma CLI (2 bug ditemukan & diperbaiki: kutipan @@index, @db.Date).",
+          "entry": "entries/1-1-schema-valid.md",
+          "shot": "screenshots/1-1-schema-valid.png"
+        },
+        {
+          "id": "1-2",
+          "title": "Migrate — 18 tabel / 20 FK / 33 index",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "prisma migrate dev",
+          "summary": "Migrasi `init_18_tables` applied. 20 FK constraint == persis 20 relasi ERD.",
+          "entry": "entries/1-2-migrate.md",
+          "shot": "screenshots/1-2-migrate.png"
+        },
+        {
+          "id": "1-3",
+          "title": "Seed — 7 role, 11 users, multi-role",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "prisma db seed",
+          "summary": "2 Prodi (TI/MI), 1 periode aktif, 4 field form dinamis, 11 users / 12 roles (1 akun multi-role).",
+          "entry": "entries/1-3-seed.md",
+          "shot": "screenshots/1-3-seed.png"
+        },
+        {
+          "id": "1-4",
+          "title": "Prisma singleton (src/lib/prisma.js)",
+          "status": "done",
+          "date": "2026-10-28",
+          "tool": "Node.js",
+          "summary": "Singleton client mencegah connection exhaustion saat hot-reload. Dasar semua service M1–M9.",
+          "entry": "entries/1-4-prisma-singleton.md",
+          "shot": "screenshots/1-4-prisma-singleton.png"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f2",
+      "no": "Fase 2",
+      "title": "M1 — Autentikasi & User Multi-Role",
+      "goal": "Login NIDN + JWT + middleware proteksi 7 role. Gerbang seluruh modul.",
+      "items": [
+        {
+          "id": "2-1",
+          "title": "lib/auth.js — bcrypt hash + JWT (jose)",
+          "status": "done",
+          "summary": "HS256 + cookie httpOnly 8 jam. Hash dummy timing-equalizer diperbaiki (tadinya bukan hash valid).",
+          "entry": "entries/2-1-lib-auth.md",
+          "shot": "screenshots/2-1-lib-auth.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, jose, bcryptjs, zod, curl"
+        },
+        {
+          "id": "2-2",
+          "title": "POST /api/auth/login (NIDN)",
+          "status": "done",
+          "summary": "Zod validasi, pesan error seragam + timing-equalizer (anti user-enumeration). 401/400/403.",
+          "entry": "entries/2-2-login.md",
+          "shot": "screenshots/2-2-login.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, jose, bcryptjs, zod, curl"
+        },
+        {
+          "id": "2-3",
+          "title": "GET /api/auth/me + logout",
+          "status": "done",
+          "summary": "Sesi dibaca dari DB (bukan cuma JWT) agar penonaktifan akun langsung berlaku.",
+          "entry": "entries/2-3-me-logout.md",
+          "shot": "screenshots/2-3-me-logout.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, jose, bcryptjs, zod, curl"
+        },
+        {
+          "id": "2-4",
+          "title": "src/middleware.js — proteksi 7 role",
+          "status": "done",
+          "summary": "Tabel aturan per prefix, rute publik daftar eksplisit, cookie dibersihkan saat token mati.",
+          "entry": "entries/2-4-middleware.md",
+          "shot": "screenshots/2-4-middleware.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, jose, bcryptjs, zod, curl"
+        },
+        {
+          "id": "2-5",
+          "title": "Pengujian end-to-end M1 Auth",
+          "status": "done",
+          "summary": "12/12 skenario lulus via HTTP sungguhan. Role lintas-rute baru diuji ADMIN+REVIEWER.",
+          "entry": "entries/2-5-auth-e2e.md",
+          "shot": "screenshots/2-5-auth-e2e.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, jose, bcryptjs, zod, curl"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f3",
+      "no": "Fase 3",
+      "title": "M8 — Master Data & Form Dinamis",
+      "goal": "CRUD Prodi/Periode/FormField. Template pola service layer untuk M2–M9.",
+      "items": [
+        {
+          "id": "3-1",
+          "title": "service layer pattern (template modul)",
+          "status": "done",
+          "summary": "Pemisahan route/service/validasi. Helper fromPrisma menerjemahkan error ke 404/409/500 aman.",
+          "entry": "entries/3-1-service-layer.md",
+          "shot": "screenshots/3-1-service-layer.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        },
+        {
+          "id": "3-2",
+          "title": "CRUD Program Studi & Periode Akademik",
+          "status": "done",
+          "summary": "Kode prodi unik, hapus ditolak bila masih dipakai, dan TEPAT SATU periode aktif (transaction) — invarian terbukti 1 dari 3.",
+          "entry": "entries/3-2-crud-master.md",
+          "shot": "screenshots/3-2-crud-master.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        },
+        {
+          "id": "3-3",
+          "title": "FormFieldConfig — builder field dinamis",
+          "status": "done",
+          "summary": "Kunci unik (jenis,label), select wajib punya opsi, filter jenis divalidasi. Akan dikonsumsi M2.",
+          "entry": "entries/3-3-form-field.md",
+          "shot": "screenshots/3-3-form-field.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f4",
+      "no": "Fase 4",
+      "title": "M2 — Proposal & Tim",
+      "goal": "Modul terberat: validasi JSON dinamis, relasi anggota, state machine.",
+      "items": [
+        {
+          "id": "4-1",
+          "title": "Model Proposals + ProposalMembers relasi",
+          "status": "done",
+          "summary": "Mesin transisi status dipisah jadi modul bebas-Prisma, mudah diuji tanpa database. 10 status, setiap transisi memuat role yang berwenang.",
+          "entry": "entries/4-1-service-layer.md",
+          "shot": "screenshots/4-1-kode-service-layer.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        },
+        {
+          "id": "4-2",
+          "title": "Buat proposal + validasi JSON field dinamis terhadap konfigurasi M8",
+          "status": "done",
+          "summary": "Field wajib terpenuhi, field tak terdaftar ditolak, tipe dicek, opsi select diverifikasi. Nilai klien tidak pernah diterima apa adanya.",
+          "entry": "entries/4-2-validasi-field.md",
+          "shot": "screenshots/4-2-pengujian-api-login.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        },
+        {
+          "id": "4-3",
+          "title": "Anggota tim — tambah/hapus, validasi NIDN, batas 3 orang",
+          "status": "done",
+          "summary": "NIDN harus berperan DOSEN dan AKTIF, ketua tidak boleh jadi anggota, duplikat ditolak, proposal terkunci setelah dikirim.",
+          "entry": "entries/4-3-anggota-tim.md",
+          "shot": "screenshots/4-2-pengujian-api-401.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        },
+        {
+          "id": "4-4",
+          "title": "State machine submit — DRAFT → MENUNGGU_VERIFIKASI_KAPRODI",
+          "status": "done",
+          "summary": "Otorisasi ketua, cek transisi, validasi ulang field, periode aktif. Submit dua kali ditolak 409.",
+          "entry": "entries/4-4-state-machine.md",
+          "shot": "screenshots/4-4-kode-state-machine.png",
+          "date": "2026-10-28",
+          "tool": "Next.js 14, Prisma, Zod, curl"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f5",
+      "no": "Fase 5",
+      "title": "M3 — Verifikasi & Review (Tie-Breaker)",
+      "goal": "Urutan Kaprodi→Admin, blind review 2 reviewer, mesin kombinasi.",
+      "items": [
+        {
+          "id": "5-1",
+          "title": "Verifikasi 2 tahap: Kaprodi(TI/MI) → Admin",
+          "status": "done",
+          "summary": "verifications.tahap + catatan wajib saat Revisi/Tolak.",
+          "entry": "entries/5-1-verifikasi-berjenjang.md",
+          "shot": "screenshots/5-1-verifikasi-berjenjang.png"
+        },
+        {
+          "id": "5-2",
+          "title": "Assign Reviewer 1 & 2 (urutan_reviewer)",
+          "status": "done",
+          "summary": "Menggantikan kolom bug reviewer2_id.",
+          "entry": "entries/5-2-penugasan-reviewer.md",
+          "shot": "screenshots/5-2-penugasan-reviewer.png"
+        },
+        {
+          "id": "5-3",
+          "title": "Blind review — isolasi nilai di level query",
+          "status": "done",
+          "summary": "R1 tidak bisa baca nilai R2 (dipaksa filter di service).",
+          "entry": "entries/5-3-blind-review.md",
+          "shot": "screenshots/5-3-blind-review.png"
+        },
+        {
+          "id": "5-4",
+          "title": "Mesin tie-breaker evaluateCombinedReviews",
+          "status": "done",
+          "summary": "TERIMA+TERIMA→LOLOS · ada REVISI→REVISI · 1 TERIMA+1 TOLAK→PERLU_KEPUTUSAN.",
+          "entry": "entries/5-4-tie-breaker.md",
+          "shot": "screenshots/5-4-tie-breaker-rapat.png"
+        },
+        {
+          "id": "5-5",
+          "title": "API rapat offline (keputusan akhir)",
+          "status": "done",
+          "summary": "Input Admin+Kaprodi saat skenario PERLU_KEPUTUSAN.",
+          "entry": "entries/5-5-rapat-offline.md",
+          "shot": "screenshots/5-4-tie-breaker-rapat.png"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f6",
+      "no": "Fase 6",
+      "title": "M4 — Penerbitan Dokumen SK & ST",
+      "goal": "Sumber dana, penomoran otomatis, generator PDF.",
+      "items": [
+        {
+          "id": "6-1",
+          "title": "Input sumber dana (Internal/Eksternal/Mandiri)",
+          "status": "done",
+          "summary": "proposals.sumberDana diisi menjelang cetak.",
+          "entry": "entries/6-1-sumber-dana.md",
+          "shot": "screenshots/6-1-sumber-dana.png"
+        },
+        {
+          "id": "6-2",
+          "title": "Penomoran otomatis SK & ST",
+          "status": "done",
+          "summary": "Auto-number ke tabel documents.",
+          "entry": "entries/6-2-penomoran-otomatis.md",
+          "shot": "screenshots/6-2-penomoran-otomatis.png"
+        },
+        {
+          "id": "6-3",
+          "title": "Generator PDF SK & ST",
+          "status": "done",
+          "summary": "pdf-template.js + API download (template resmi dari dosen).",
+          "entry": "entries/6-3-generator-pdf.md",
+          "shot": "screenshots/6-3-pdf-sk.png"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f7",
+      "no": "Fase 7",
+      "title": "M7 Notifikasi & M9 Log Aktivitas",
+      "goal": "Trigger in-app notif tiap transisi + audit trail proposal.",
+      "items": [
+        {
+          "id": "7-1",
+          "title": "Helper notifikasi otomatis per transisi",
+          "status": "done",
+          "summary": "notifications ke user terkait di setiap ganti status.",
+          "entry": "entries/7-1-notifikasi-otomatis.md",
+          "shot": "screenshots/7-1-notifikasi-otomatis.png"
+        },
+        {
+          "id": "7-2",
+          "title": "API list unread & mark as read",
+          "status": "done",
+          "summary": "Endpoint lonceng notifikasi.",
+          "entry": "entries/7-2-api-notifikasi.md",
+          "shot": "screenshots/7-1-notifikasi-otomatis.png"
+        },
+        {
+          "id": "7-3",
+          "title": "API timeline riwayat proposal + audit global",
+          "status": "done",
+          "summary": "activity_logs untuk Dosen & Admin.",
+          "entry": "entries/7-3-timeline-audit.md",
+          "shot": "screenshots/7-2-timeline-riwayat.png"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f8",
+      "no": "Fase 8",
+      "title": "M5 Rekap Eksekutif & M6 Konten Publik",
+      "goal": "Agregasi statistik + drill-down + export. Konten publik berjenjang.",
+      "items": [
+        {
+          "id": "8-1",
+          "title": "Agregasi statistik Ketua/Prodi + filter periode",
+          "status": "done",
+          "summary": "Query rekap dengan rentang tahun akademik.",
+          "entry": "entries/8-1-agregasi-statistik.md",
+          "shot": "screenshots/8-1-rekap-eksekutif.png"
+        },
+        {
+          "id": "8-2",
+          "title": "API drill-down + export Excel/PDF",
+          "status": "done",
+          "summary": "Klik angka → rincian dosen/reviewer/proposal.",
+          "entry": "entries/8-2-drilldown-export.md",
+          "shot": "screenshots/8-1-rekap-eksekutif.png"
+        },
+        {
+          "id": "8-3",
+          "title": "CMS Berita Draft→Review→Publish + Galeri/Dokumen/Kuisioner",
+          "status": "done",
+          "summary": "Workflow konten publik + analytics terbatas.",
+          "entry": "entries/8-3-konten-publik.md",
+          "shot": "screenshots/8-3-kms-berita.png"
+        }
+      ],
+      "state": "selesai"
+    },
+    {
+      "id": "f9",
+      "no": "Fase 9",
+      "title": "Cutover & Pengujian",
+      "goal": "Audit kepatuhan, RBAC test, seeding demo sidang.",
+      "items": [
+        {
+          "id": "9-1",
+          "title": "Audit <1000 baris/file & 1 tombol = 1 file",
+          "status": "done",
+          "summary": "Kepatuhan aturan disiplin tim sebelum sidang.",
+          "entry": "entries/9-1-audit-disiplin-file.md",
+          "shot": "screenshots/9-1-audit-disiplin-file.png"
+        },
+        {
+          "id": "9-2",
+          "title": "Uji RBAC 7 role + skenario ekstrem tie-breaker",
+          "status": "done",
+          "summary": "Blackbox alur utama & revisi lintas TI/MI.",
+          "entry": "entries/9-2-uji-rbac-7-role.md",
+          "shot": "screenshots/9-2-rbac-prodi-403.png"
+        },
+        {
+          "id": "9-3",
+          "title": "Seed demo sidang + gladi bersih",
+          "status": "done",
+          "summary": "Data simulasi STIKOM untuk presentasi 7 role.",
+          "entry": "entries/9-3-seed-demo-sidang.md",
+          "shot": "screenshots/9-3-kuisioner-publik.png"
+        }
+      ],
+      "state": "selesai"
+    }
+  ]
+}

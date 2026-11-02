@@ -1,0 +1,465 @@
+// schema.prisma — Sistem Informasi LPPM (STIKOM PGRI Banyuwangi)
+// 18 tabel — derived persis dari ERD v4 (18 entitas / 20 relasi)
+// UUID VARCHAR(36) · MySQL · Next.js 14 + Prisma ORM
+// Alur verifikasi: Dosen -> Kaprodi(TI/MI) -> Admin -> Reviewer1&2 -> tie-breaker -> SK/ST
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider        = "mysql"
+  url             = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // wajib: tanpa ini Prisma bikin shadow DB sendiri
+}
+
+// ============================================================
+// ENUM STATUS — State Machine Proposal
+// ============================================================
+// Alur (sesuai use-case narrative, urutan Kaprodi dulu):
+//  DRAFT
+//   └─ submit ─> MENUNGGU_VERIFIKASI_KAPRODI
+//        └─ Kaprodi setujui ─> MENUNGGU_VERIFIKASI_ADMIN
+//        └─ Kaprodi revisi  ─> PERLU_REVISI (tahap=KAPRODI)
+//        └─ Kaprodi tolak   ─> DITOLAK
+//             └─ Admin setujui ─> MENUNGGU_REVIEW
+//             └─ Admin revisi  ─> PERLU_REVISI (tahap=ADMIN)
+//             └─ Admin tolak   ─> DITOLAK
+//                  └─ (Admin tugaskan R1 & R2, keduanya nilai independen)
+//                       ├─ TERIMA+TERIMA        ─> LOLOS
+//                       ├─ ada REVISI           ─> PERLU_REVISI (tahap=REVIEWER)
+//                       │     └─ dosen kirim ulang ─> MENUNGGU_SK_ST (langsung, tdk review ulang)
+//                       └─ 1 TERIMA + 1 TOLAK   ─> PERLU_KEPUTUSAN (rapat offline)
+//                             └─ Admin+Kaprodi putus ─> LOLOS | PERLU_REVISI | DITOLAK
+//  LOLOS ── Admin generate SK/ST ─> SELESAI
+
+enum StatusProposal {
+  DRAFT
+  MENUNGGU_VERIFIKASI_KAPRODI
+  MENUNGGU_VERIFIKASI_ADMIN
+  PERLU_REVISI
+  MENUNGGU_REVIEW
+  PERLU_KEPUTUSAN
+  MENUNGGU_SK_ST
+  LOLOS
+  DITOLAK
+  SELESAI
+}
+
+enum JenisProposal {
+  PENELITIAN
+  PENGABDIAN
+  KKN
+}
+
+enum TahapVerifikasi {
+  KAPRODI
+  ADMIN
+}
+
+enum Keputusan {
+  SETUJUI
+  REVISI
+  TOLAK
+}
+
+enum RekomendasiReviewer {
+  TERIMA
+  REVISI
+  TOLAK
+}
+
+enum HasilKombinasi {
+  TERIMA_TERIMA
+  ADA_REVISI
+  TERIMA_TOLAK
+}
+
+enum KeputusanAkhir {
+  LOLOS
+  REVISI
+  DITOLAK
+}
+
+enum SumberDana {
+  INTERNAL
+  EKSTERNAL
+  MANDIRI
+}
+
+enum RoleName {
+  DOSEN
+  KAPRODI
+  REVIEWER
+  ADMIN
+  KETUA_STIKOM
+  KETUA_LPPM
+  PRODI
+}
+
+enum StatusUser {
+  AKTIF
+  NONAKTIF
+}
+
+// ============================================================
+// MODUL MASTER & KONFIGURASI (M8)
+// ============================================================
+
+model ProgramStudi {
+  id       String @id @default(uuid()) @db.VarChar(36)
+  kode     String @unique @db.VarChar(20) // "TI" | "MI"
+  nama     String @db.VarChar(100)
+
+  users    Users[]
+  proposals Proposals[]
+
+  @@map("program_studi")
+}
+
+model PeriodeAkademik {
+  id           String  @id @default(uuid()) @db.VarChar(36)
+  nama         String  @db.VarChar(50) // "2026/2027 Ganjil"
+  tahunMulai   Int     @map("tahun_mulai")
+  tahunSelesai Int     @map("tahun_selesai")
+  isActive     Boolean @default(false) @map("is_active")
+
+  proposals Proposals[]
+
+  @@map("periode_akademik")
+}
+
+// Field dinamis form proposal per jenis — dikonsumsi DynamicFieldsRenderer
+model FormFieldConfig {
+  id            String  @id @default(uuid()) @db.VarChar(36)
+  jenisProposal JenisProposal @map("jenis_proposal")
+  label         String  @db.VarChar(150)
+  tipeInput     String  @map("tipe_input") // text|number|date|select|textarea|file
+  opsi          Json?   // opsi untuk select/ radio
+  wajib         Boolean @default(false)
+  urutan        Int     @default(0)
+
+  @@unique([jenisProposal, label]) // jaga duplikasi field sejenis
+  @@index([jenisProposal, urutan])
+  @@map("form_field_configs")
+}
+
+// ============================================================
+// MODUL AUTH & USER (M1)
+// ============================================================
+
+model Users {
+  id             String       @id @default(uuid()) @db.VarChar(36)
+  nidn           String       @unique @db.VarChar(20) // login
+  nama           String       @db.VarChar(150)
+  passwordHash   String       @map("password_hash") @db.VarChar(255) // bcrypt
+  foto           String?      @db.VarChar(255)
+  programStudiId String?      @map("program_studi_id") @db.VarChar(36)
+  status         StatusUser   @default(AKTIF)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  programStudi   ProgramStudi? @relation(fields: [programStudiId], references: [id])
+
+  roles          UserRoles[]
+  // proposal yang diusul (sebagai ketua)
+  proposalsUsul  Proposals[]       @relation("DosenPengusul")
+  // keanggotaan tim
+  anggotaTim     ProposalMembers[]
+  // sebagai verifikator (kaprodi/admin)
+  verifikasinya  Verifications[]   @relation("Verifikator")
+  // sebagai reviewer
+  reviewsnya     Reviews[]         @relation("Reviewer")
+  // sebagai pejabat penentu keputusan akhir
+  keputusanDiputuskan ReviewEvaluations[] @relation("PejabatPutusan")
+  // pembuat dokumen SK/ST
+  dokumenDibuat  Documents[]       @relation("PembuatDokumen")
+  kuisionerDibuat Kuisioner[]      @relation("KuisionerPembuat")
+  // penulis berita
+  beritaDitulis  Berita[]
+  notifikasinya  Notifications[]
+  logsnya        ActivityLogs[]
+
+  @@index([programStudiId])
+  @@map("users")
+}
+
+// Multi-role: satu user bisa punya >1 role (dosen yg juga kaprodi/reviewer)
+model UserRoles {
+  id     String   @id @default(uuid()) @db.VarChar(36)
+  userId String   @map("user_id") @db.VarChar(36)
+  role   RoleName
+
+  user   Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@map("user_roles")
+}
+
+// ============================================================
+// MODUL PROPOSAL & TIM (M2)
+// ============================================================
+
+model Proposals {
+  id               String          @id @default(uuid()) @db.VarChar(36)
+  dosenId          String          @map("dosen_id") @db.VarChar(36) // ketua pengusul
+  programStudiId   String          @map("program_studi_id") @db.VarChar(36)
+  periodeId        String          @map("periode_id") @db.VarChar(36)
+  jenis            JenisProposal
+  judul            String          @db.VarChar(255)
+  abstrak          String?         @db.Text
+  anggaran         Decimal?        @db.Decimal(14, 2)
+  sumberDana       SumberDana?     @map("sumber_dana") // diisi menjelang cetak SK/ST
+  fieldTambahan    Json?           @map("field_tambahan") // isi form dinamis M8
+  linkLaporanKemajuan String?      @map("link_laporan_kemajuan") // Google Drive
+  linkLaporanAkhir String?         @map("link_laporan_akhir")
+  status           StatusProposal  @default(DRAFT)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  dosen            Users           @relation("DosenPengusul", fields: [dosenId], references: [id])
+  programStudi     ProgramStudi    @relation(fields: [programStudiId], references: [id])
+  periode          PeriodeAkademik @relation(fields: [periodeId], references: [id])
+
+  anggota          ProposalMembers[]
+  verifikasi       Verifications[]
+  reviews          Reviews[]
+  evaluasi         ReviewEvaluations?
+  dokumen          Documents?
+  luaran           Luaran[]
+  logs             ActivityLogs[]
+
+  @@index([dosenId])
+  @@index([programStudiId])
+  @@index([periodeId])
+  @@index([status])
+  @@map("proposals")
+}
+
+model ProposalMembers {
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  proposalId String    @map("proposal_id") @db.VarChar(36)
+  userId     String    @map("user_id") @db.VarChar(36)
+
+  proposal   Proposals @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user       Users     @relation(fields: [userId], references: [id])
+
+  @@unique([proposalId, userId])
+  @@index([userId])
+  @@map("proposal_members")
+}
+
+model Luaran {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  proposalId     String    @map("proposal_id") @db.VarChar(36)
+  namaJurnal     String?   @map("nama_jurnal") @db.VarChar(200)
+  volume         String?   @db.VarChar(20)
+  nomor          String?   @db.VarChar(20)
+  tahun          Int?
+  fieldTambahan  Json?     @map("field_tambahan")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  proposal       Proposals @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+  @@map("luaran")
+}
+
+// ============================================================
+// MODUL VERIFIKASI & REVIEW (M3)
+// ============================================================
+
+// Verifikasi 2 tahap: tahap=KAPRODI lalu tahap=ADMIN
+model Verifications {
+  id            String           @id @default(uuid()) @db.VarChar(36)
+  proposalId    String           @map("proposal_id") @db.VarChar(36)
+  tahap         TahapVerifikasi
+  verifikatorId String           @map("verifikator_id") @db.VarChar(36)
+  keputusan     Keputusan
+  catatan       String?          @db.Text // wajib saat REVISI / TOLAK
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  proposal      Proposals        @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  verifikator   Users            @relation("Verifikator", fields: [verifikatorId], references: [id])
+
+  @@unique([proposalId, tahap]) // 1 record per tahap per proposal
+  @@index([verifikatorId])
+  @@map("verifications")
+}
+
+// Blind review — R1 & R2 tdk saling lihat nilai (dijaga di query service)
+model Reviews {
+  id             String               @id @default(uuid()) @db.VarChar(36)
+  proposalId     String               @map("proposal_id") @db.VarChar(36)
+  reviewerId     String               @map("reviewer_id") @db.VarChar(36)
+  urutanReviewer Int                  @map("urutan_reviewer") // 1 | 2 (menggantikan kolom bug reviewer2_id)
+  skor           Int?
+  rekomendasi    RekomendasiReviewer?
+  catatan        String?              @db.Text
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  proposal       Proposals            @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  reviewer       Users                @relation("Reviewer", fields: [reviewerId], references: [id])
+
+  @@unique([proposalId, urutanReviewer])
+  @@index([reviewerId])
+  @@map("reviews")
+}
+
+// Konsolidasi hasil R1 & R2 (1:1 ke proposal) — mesin tie-breaker
+model ReviewEvaluations {
+  id             String          @id @default(uuid()) @db.VarChar(36)
+  proposalId     String          @unique @map("proposal_id") @db.VarChar(36)
+  hasilKombinasi HasilKombinasi  @map("hasil_kombinasi") // TERIMA_TERIMA|ADA_REVISI|TERIMA_TOLAK
+  keputusanAkhir KeputusanAkhir? @map("keputusan_akhir") // diisi saat PERLU_KEPUTUSAN via rapat offline
+  diputuskanOleh String?         @map("diputuskan_oleh") @db.VarChar(36) // admin/kaprodi saat rapat offline
+  catatan        String?         @db.Text
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  proposal       Proposals       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  pejabat        Users?          @relation("PejabatPutusan", fields: [diputuskanOleh], references: [id])
+
+  @@map("review_evaluations")
+}
+
+// ============================================================
+// MODUL PENERBITAN DOKUMEN (M4) — 1:1 ke proposal
+// ============================================================
+
+model Documents {
+  id             String     @id @default(uuid()) @db.VarChar(36)
+  proposalId     String     @unique @map("proposal_id") @db.VarChar(36)
+  nomorSk        String?    @map("nomor_sk") @db.VarChar(50) // auto-number
+  nomorSt        String?    @map("nomor_st") @db.VarChar(50)
+  tanggalTerbit  DateTime?  @db.Date @map("tanggal_terbit")
+  fileSkPath     String?    @map("file_sk_path") @db.VarChar(255)
+  fileStPath     String?    @map("file_st_path") @db.VarChar(255)
+  dibuatOleh     String     @map("dibuat_oleh") @db.VarChar(36)
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  proposal       Proposals  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  pembuat        Users      @relation("PembuatDokumen", fields: [dibuatOleh], references: [id])
+
+  // Penomoran otomatis dijamin unik di level database, bukan sekadar
+  // dihitung di aplikasi — dua admin yang menekan "terbitkan" bersamaan
+  // tidak akan pernah menghasilkan nomor ganda.
+  @@unique([nomorSk])
+  @@unique([nomorSt])
+  @@index([dibuatOleh])
+  @@map("documents")
+}
+
+// ============================================================
+// MODUL NOTIFIKASI (M7) & LOG AKTIVITAS (M9)
+// ============================================================
+
+model Notifications {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @map("user_id") @db.VarChar(36)
+  judul     String   @db.VarChar(200)
+  pesan     String   @db.Text
+  link      String?  @db.VarChar(255) // rute tujuan
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model ActivityLogs {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  proposalId  String?   @map("proposal_id") @db.VarChar(36)
+  userId      String    @map("user_id") @db.VarChar(36)
+  aksi        String    @db.VarChar(100) // submit|verifikasi|review|generate_sk|dsb
+  keterangan  String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  proposal    Proposals? @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user        Users      @relation(fields: [userId], references: [id])
+
+  @@index([proposalId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// ============================================================
+// MODUL KONTEN PUBLIK (M6)
+// ============================================================
+
+model Berita {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  judul       String    @db.VarChar(255)
+  konten      String    @db.Text
+  gambar      String?   @db.VarChar(255)
+  kategori    String?   @db.VarChar(100)
+  status      String    @default("DRAFT") // DRAFT|REVIEW|TERBIT
+  penulisId   String    @map("penulis_id") @db.VarChar(36)
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  penulis     Users     @relation(fields: [penulisId], references: [id])
+
+  @@index([status])
+  @@map("berita")
+}
+
+model DokumenPublik {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  nama      String   @db.VarChar(200)
+  filePath  String   @map("file_path") @db.VarChar(255)
+  kategori  String?  @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("dokumen_publik")
+}
+
+model Galeri {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  judul      String   @db.VarChar(200)
+  deskripsi  String?  @db.Text
+  fotoPath   String   @map("foto_path") @db.VarChar(255)
+  kategori   String?  @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("galeri")
+}
+
+model Kuisioner {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  judul       String   @db.VarChar(200)
+  deskripsi   String?  @db.Text
+  // Daftar pertanyaan disimpan sebagai JSON array, bukan tabel relasional:
+  // bentuk pertanyaan bisa berubah-ubah (pilihan ganda, skala, isian panjang)
+  // sehingga skema kolom tetap tidak akan pernah muat.
+  pertanyaan  Json     @default("[]")
+  // DRAFT | AKTIF | SELESAI — hanya AKTIF yang tampil di halaman publik.
+  status      String   @default("DRAFT")
+  dibuatOleh  String   @map("dibuat_oleh") @db.VarChar(36)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  pembuat     Users    @relation("KuisionerPembuat", fields: [dibuatOleh], references: [id])
+  jawaban     KuisionerResponse[]
+
+  @@index([status])
+  @@map("kuisioner")
+}
+
+model KuisionerResponse {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  kuisionerId String?  @map("kuisioner_id") @db.VarChar(36)
+  namaPengisi String   @map("nama_pengisi") @db.VarChar(150)
+  dataJawaban Json     @map("data_jawaban")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relasi dibuat opsional agar data jawaban lama yang tercatat sebelum
+  // tabel kuisioner ada tetap tidak rusak.
+  kuisioner   Kuisioner? @relation(fields: [kuisionerId], references: [id], onDelete: SetNull)
+
+  @@index([kuisionerId])
+  @@map("kuisioner_responses")
+}

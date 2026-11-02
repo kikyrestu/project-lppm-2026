@@ -1,0 +1,419 @@
+### Backend SI-LPPM — pengujian API M1, M2, M8
+### Jalankan per blok dengan Ctrl+Alt+R
+
+@host = http://127.0.0.1:3100
+@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhNzc5ZGFkYi1jYWEzLTRhYzYtODJhNC01NWRkMDc0MDVkZTgiLCJuaWRuIjoiOTk5OTk5OTAwMSIsIm5hbWEiOiJBZG1pbiBMUFBNIiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzkzMzI4NjE5LCJleHAiOjE3OTMzNDMwMTl9.DfCGkYRhmn-1Iu2P4WUPQ9BYIVvU9AvY0lR039ImCCI
+@kuisId = e5a3d141-82f7-42cf-961b-5a51b9cfb36e
+@kuisSelesai = ee7a769e-c33f-427b-b218-57a35b381e83
+@proposalId = 2ede0a81-ac39-4be0-8434-6d576bc1e1ee
+@proposalLolos = 0d833998-06ac-4979-a894-491eb1cd85a8
+@tokenProdi = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2ZDQ2YzMwMi04MmY5LTRmZGYtYjM0MC05NWM1MjY1ZmE2ODIiLCJuaWRuIjoiOTk5OTk5OTAwNCIsIm5hbWEiOiJQcm9kaSBUSSIsInJvbGVzIjpbIlBST0RJIl0sImlhdCI6MTc5MzMyODYxOSwiZXhwIjoxNzkzMzQzMDE5fQ.3Jf5y02f5TRRfZ-Ygf3YV5EuGGC3i4TaHhGZ3s-U7Hg
+@tokenDosenLain = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlMGQ3NTNhZi0xNjNiLTQwYTgtOGQ0Yy02NGUyMzYxMWRjZTgiLCJuaWRuIjoiMDQxMjM0NTY4MSIsIm5hbWEiOiJEci4gRG9zZW4gRHVhIiwicm9sZXMiOlsiRE9TRU4iXSwiaWF0IjoxNzkzMzI4NjE5LCJleHAiOjE3OTMzNDMwMTl9.JBJyNDr6jCZTg1DiJfL59pf96H0jmjMZQ8ICsh1y2YY
+
+### ============================================================
+### M1 — Autentikasi
+### ============================================================
+
+### Login ADMIN (200 — cookie HttpOnly diterbitkan)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "nidn": "9999999001",
+  "password": "LppmDemo123!"
+}
+
+### Password salah (401 — pesan sama dengan NIDN tak dikenal, mencegah enumerasi)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "nidn": "9999999001",
+  "password": "salah"
+}
+
+### NIDN bukan teks (400 — ditolak Zod sebelum menyentuh database)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "nidn": 123,
+  "password": "x"
+}
+
+### Sesi aktif (200)
+GET {{host}}/api/auth/me
+
+### Tanpa sesi (401 UNAUTHENTICATED)
+GET {{host}}/api/auth/me
+X-Ignore-Auth: true
+
+### ============================================================
+### M8 — Master Data
+### ============================================================
+
+### Daftar program studi (200 — hanya ADMIN)
+GET {{host}}/api/admin/prodi
+Cookie: lppm_token={{token}}
+
+### Daftar periode akademik (200)
+GET {{host}}/api/admin/periode
+Cookie: lppm_token={{token}}
+
+### Konfigurasi field dinamis KKN (200)
+GET {{host}}/api/admin/form-field?jenis=KKN
+Cookie: lppm_token={{token}}
+
+### Jenis di luar enum skema (400 VALIDATION)
+GET {{host}}/api/admin/form-field?jenis=PKM
+Cookie: lppm_token={{token}}
+
+### ============================================================
+### M2 — Proposal & Tim
+### ============================================================
+
+### Daftar proposal milik dosen (200)
+GET {{host}}/api/proposal
+Cookie: lppm_token={{token}}
+
+### Buat proposal KKN — field wajib terisi (201)
+POST {{host}}/api/proposal
+Content-Type: application/json
+Cookie: lppm_token={{token}}
+
+{
+  "judul": "Kajian Dampak Sosial Program KKN Angkatan 41",
+  "jenis": "KKN",
+  "programStudiId": "3e374d05-2868-4e9e-b4d8-879d6442c489",
+  "periodeId": "ID_PERIODE_AKTIF",
+  "fieldTambahan": {
+    "Desa Sasaran": "Sumberejo"
+  }
+}
+
+### Buat proposal — field wajib "Desa Sasaran" kosong (400 VALIDATION)
+POST {{host}}/api/proposal
+Content-Type: application/json
+Cookie: lppm_token={{token}}
+
+{
+  "judul": "Kajian Dampak Sosial Program KKN Angkatan 41",
+  "jenis": "KKN",
+  "programStudiId": "3e374d05-2868-4e9e-b4d8-879d6442c489",
+  "periodeId": "ID_PERIODE_AKTIF"
+}
+
+### Field tidak terdaftar di konfigurasi M8 (400 VALIDATION)
+POST {{host}}/api/proposal
+Content-Type: application/json
+Cookie: lppm_token={{token}}
+
+{
+  "judul": "Kajian Dampak Sosial Program KKN Angkatan 41",
+  "jenis": "KKN",
+  "programStudiId": "3e374d05-2868-4e9e-b4d8-879d6442c489",
+  "periodeId": "ID_PERIODE_AKTIF",
+  "fieldTambahan": {
+    "Desa Sasaran": "Sumberejo",
+    "KolomRahasia": "harus ditolak"
+  }
+}
+
+### Tambah anggota tim (201)
+POST {{host}}/api/proposal/ID_PROPOSAL/anggota
+Content-Type: application/json
+Cookie: lppm_token={{token}}
+
+{
+  "nidn": "0412345681"
+}
+
+### Anggota duplikat (409 CONFLICT)
+POST {{host}}/api/proposal/ID_PROPOSAL/anggota
+Content-Type: application/json
+Cookie: lppm_token={{token}}
+
+{
+  "nidn": "0412345681"
+}
+
+### Submit — kirim ke Kaprodi (200)
+POST {{host}}/api/proposal/ID_PROPOSAL/submit
+Cookie: lppm_token={{token}}
+
+### Submit dua kali (409 TRANSISI_TIDAK_SAHIH)
+POST {{host}}/api/proposal/ID_PROPOSAL/submit
+Cookie: lppm_token={{token}}
+
+### Detail proposal + riwayat verifikasi (200)
+GET {{host}}/api/proposal/ID_PROPOSAL
+Cookie: lppm_token={{token}}
+
+### ============================================================
+### M3 — Verifikasi & Review (Tie-Breaker)
+### ============================================================
+
+### Verifikasi tahap Kaprodi — SETUJUI (200)
+POST {{host}}/api/proposal/2995014c-2214-4bca-829b-994e3a527a37/verifikasi
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "keputusan": "SETUJUI"
+}
+
+### REVISI tanpa catatan (403 — catatan wajib)
+POST {{host}}/api/proposal/2995014c-2214-4bca-829b-994e3a527a37/verifikasi
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "keputusan": "REVISI"
+}
+
+### Keputusan di luar enum (400 — ditolak Zod)
+POST {{host}}/api/proposal/2995014c-2214-4bca-829b-994e3a527a37/verifikasi
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "keputusan": "SETUJU"
+}
+
+### Penugasan Reviewer 1 & 2 (201)
+POST {{host}}/api/proposal/5f9f44cc-c9d8-4931-864a-fce8a7fe48c7/reviewer
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "reviewer": [
+    { "urutanReviewer": 1, "nidn": "0412345682" },
+    { "urutanReviewer": 2, "nidn": "0412345683" }
+  ]
+}
+
+### Pengusul jadi reviewer (409 — konflik kepentingan)
+POST {{host}}/api/proposal/5f9f44cc-c9d8-4931-864a-fce8a7fe48c7/reviewer
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "reviewer": [
+    { "urutanReviewer": 1, "nidn": "0412345680" },
+    { "urutanReviewer": 2, "nidn": "0412345683" }
+  ]
+}
+
+### Tampilan blind reviewer (200 — TANPA nilai reviewer lain)
+GET {{host}}/api/proposal/5f9f44cc-c9d8-4931-864a-fce8a7fe48c7/review
+Cookie: lppm_token={{token}}
+
+### Ajukan nilai (200 — memicu tie-breaker bila kedua reviewer selesai)
+POST {{host}}/api/proposal/5f9f44cc-c9d8-4931-864a-fce8a7fe48c7/review
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "skor": 85,
+  "rekomendasi": "TERIMA",
+  "catatan": "Inovasi tinggi, relevan dengan kebutuhan daerah."
+}
+
+### Keputusan rapat offline — skenario sengketa (200)
+POST {{host}}/api/proposal/fca0a2cf-1627-420b-806e-c14c2f8ff2c7/keputusan
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "keputusanAkhir": "LOLOS",
+  "catatan": "Rapat 29 Okt: inovasi dinilai menutupi kelemahan anggaran."
+}
+
+### Putusan kedua ditolak (409 — status sudah keluar dari PERLU_KEPUTUSAN)
+POST {{host}}/api/proposal/fca0a2cf-1627-420b-806e-c14c2f8ff2c7/keputusan
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "keputusanAkhir": "DITOLAK"
+}
+
+### ============================================================
+### M4 — Penerbitan Dokumen SK & ST
+### ============================================================
+
+### Sumber dana — nilai di luar enum (400)
+PUT {{host}}/api/proposal/2093cc76-61f3-4f46-8030-3122ccafd701/sumber-dana
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "sumberDana": "HAIB"
+}
+
+### Isi sumber dana menjelang cetak (200)
+PUT {{host}}/api/proposal/2093cc76-61f3-4f46-8030-3122ccafd701/sumber-dana
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "sumberDana": "EKSTERNAL"
+}
+
+### Terbitkan ST sebelum SK (409 — urutan wajib)
+POST {{host}}/api/proposal/2093cc76-61f3-4f46-8030-3122ccafd701/dokumen
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "jenis": "ST"
+}
+
+### Terbitkan SK — penomoran otomatis (201)
+POST {{host}}/api/proposal/2093cc76-61f3-4f46-8030-3122ccafd701/dokumen
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "jenis": "SK"
+}
+
+### SK ganda ditolak (409)
+POST {{host}}/api/proposal/2093cc76-61f3-4f46-8030-3122ccafd701/dokumen
+Cookie: lppm_token={{token}}
+Content-Type: application/json
+
+{
+  "jenis": "SK"
+}
+
+### Status dokumen proposal (200)
+GET {{host}}/api/proposal/2093cc76-61f3-4f46-8030-3122ccafd701/dokumen
+Cookie: lppm_token={{token}}
+
+### ============================================================
+### M7 & M9 — Notifikasi & Log Aktivitas
+### ============================================================
+
+### Daftar notifikasi + jumlah belum dibaca (200)
+GET {{host}}/api/notifikasi
+Cookie: lppm_token={{token}}
+
+### Tandai satu notifikasi sudah dibaca (200)
+POST {{host}}/api/notifikasi/f57567fd-0300-488f-843e-f6bf01063405/baca
+Cookie: lppm_token={{token}}
+
+### Tandai semua notifikasi sudah dibaca (200)
+POST {{host}}/api/notifikasi/baca-semua
+Cookie: lppm_token={{token}}
+
+### Timeline riwayat proposal — ketua pengusul (200)
+GET {{host}}/api/proposal/0d833998-06ac-4979-a894-491eb1cd85a8/riwayat
+Cookie: lppm_token={{token}}
+
+### Jejak audit global (200)
+GET {{host}}/api/admin/audit
+Cookie: lppm_token={{token}}
+
+### ============================================================
+### M5 — Rekap Eksekutif, Drill-down & Export
+### ============================================================
+
+### Daftar periode akademik untuk filter (200)
+GET {{host}}/api/rekap/periode
+Cookie: lppm_token={{token}}
+
+### Rekap eksekutif — seluruh prodi (200)
+GET {{host}}/api/admin/rekap
+Cookie: lppm_token={{token}}
+
+### Drill-down: klik angka "Lolos" -> daftar proposal (200)
+GET {{host}}/api/admin/rekap/rincian?dimensi=status&nilai=Lolos
+Cookie: lppm_token={{token}}
+
+### ============================================================
+### M6 — Konten Publik
+### ============================================================
+
+### Daftar berita (khusus ADMIN, semua status) (200)
+GET {{host}}/api/admin/berita
+Cookie: lppm_token={{token}}
+
+### Berita publik — hanya yang TERBIT (200, tanpa login)
+GET {{host}}/api/public/berita
+
+### Galeri publik (200, tanpa login)
+GET {{host}}/api/public/galeri
+
+### ============================================================
+### Fase 9 — Kuisioner Publik & Uji RBAC
+### ============================================================
+
+### Daftar kuisioner AKTIF (200, tanpa login)
+GET {{host}}/api/public/kuisioner
+
+### Kirim jawaban sah (200, tanpa login)
+POST {{host}}/api/public/kuisioner/{{kuisId}}/isi
+Content-Type: application/json
+
+{
+  "namaPengisi": "Budi Santoso",
+  "jawaban": { "q1": "4", "q2": "Kejelasan informasi", "q3": "Tolong upload panduan PDF." }
+}
+
+### Jawaban untuk pertanyaan yang tidak ada (400 PERTANYAAN_TIDAK_DIKENAL)
+POST {{host}}/api/public/kuisioner/{{kuisId}}/isi
+Content-Type: application/json
+
+{ "namaPengisi": "Anonim", "jawaban": { "q99": "x" } }
+
+### Pertanyaan wajib yang kosong (400 JAWABAN_WAJIB_KOSONG)
+POST {{host}}/api/public/kuisioner/{{kuisId}}/isi
+Content-Type: application/json
+
+{ "namaPengisi": "Anonim", "jawaban": { "q1": "5" } }
+
+### Kuisioner SELESAI tidak menerima jawaban (404, bukan 403)
+POST {{host}}/api/public/kuisioner/{{kuisSelesai}}/isi
+Content-Type: application/json
+
+{ "namaPengisi": "Anonim", "jawaban": { "q1": "5", "q2": "SOP" } }
+
+### ============================================================
+### RBAC — siapa boleh membaca proposal
+### ============================================================
+
+### ADMIN membaca semua proposal (200)
+GET {{host}}/api/proposal/{{proposalId}}
+
+### KETUA_STIKOM pengawasan institusional (200)
+GET {{host}}/api/proposal/{{proposalId}}
+
+### KETUA_LPPM pengawasan institusional (200)
+GET {{host}}/api/proposal/{{proposalId}}
+
+### PRODI tidak berhak membaca proposal (403 FORBIDDEN)
+GET {{host}}/api/proposal/{{proposalId}}
+Cookie: lppm_token={{tokenProdi}}
+
+### DOSEN lain bukan pemilik (403 FORBIDDEN)
+GET {{host}}/api/proposal/{{proposalId}}
+Cookie: lppm_token={{tokenDosenLain}}
+
+### DOSEN pemilik proposal (200)
+GET {{host}}/api/proposal/{{proposalId}}
+
+### REVIEWER yang ditugaskan (200)
+GET {{host}}/api/proposal/{{proposalId}}
+
+### ============================================================
+### RBAC — DELETE id yang tidak dikenal
+### ============================================================
+
+### Hapus program studi dengan id tak dikenal (404 NOT_FOUND)
+DELETE {{host}}/api/admin/prodi/00000000-0000-0000-0000-000000000000
+Cookie: lppm_token={{token}}
+
+### Hapus periode dengan id tak dikenal (404 NOT_FOUND)
+DELETE {{host}}/api/admin/periode/00000000-0000-0000-0000-000000000000
+Cookie: lppm_token={{token}}

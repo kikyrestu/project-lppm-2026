@@ -1,0 +1,127 @@
+{
+  "settings": {
+    "editor.fontSize": 14,
+    "editor.fontFamily": "JetBrains Mono",
+    "editor.renderWhitespace": "none",
+    "editor.wordWrap": "on",
+    "darkTheme": "Default Dark Modern"
+  },
+  "collections": [
+    {
+      "name": "LPPM — M1 Autentikasi",
+      "folders": [],
+      "requests": [
+        {
+          "name": "Login Admin LPPM",
+          "method": "POST",
+          "url": "http://127.0.0.1:3100/api/auth/login",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"nidn\": \"9999999001\",\n  \"password\": \"LppmDemo123!\"\n}",
+          "bodyType": "json"
+        },
+        {
+          "name": "Login — password salah (401)",
+          "method": "POST",
+          "url": "http://127.0.0.1:3100/api/auth/login",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"nidn\": \"9999999001\",\n  \"password\": \"salah\"\n}",
+          "bodyType": "json"
+        },
+        {
+          "name": "Cek Sesi Aktif",
+          "method": "GET",
+          "url": "http://127.0.0.1:3100/api/auth/me",
+          "headers": [],
+          "body": "",
+          "bodyType": "none"
+        }
+      ]
+    },
+    {
+      "name": "LPPM — M2 Proposal & Tim",
+      "folders": [],
+      "requests": [
+        {
+          "name": "Daftar Proposal (milik dosen)",
+          "method": "GET",
+          "url": "http://127.0.0.1:3100/api/proposal",
+          "headers": [],
+          "body": "",
+          "bodyType": "none"
+        },
+        {
+          "name": "Buat Proposal KKN — field wajib terisi",
+          "method": "POST",
+          "url": "http://127.0.0.1:3100/api/proposal",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"judul\": \"Kajian Dampak Sosial Program KKN Angkatan 41\",\n  \"jenis\": \"KKN\",\n  \"programStudiId\": \"3e374d05-2868-4e9e-b4d8-879d6442c489\",\n  \"periodeId\": \"PERIODE_AKTIF\",\n  \"fieldTambahan\": {\n    \"Desa Sasaran\": \"Sumberejo\"\n  }\n}",
+          "bodyType": "json"
+        },
+        {
+          "name": "Buat Proposal — field wajib kosong (400)",
+          "method": "POST",
+          "url": "http://127.0.0.1:3100/api/proposal",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"judul\": \"Kajian Dampak Sosial Program KKN Angkatan 41\",\n  \"jenis\": \"KKN\",\n  \"programStudiId\": \"3e374d05-2868-4e9e-b4d8-879d6442c489\",\n  \"periodeId\": \"PERIODE_AKTIF\"\n}",
+          "bodyType": "json"
+        },
+        {
+          "name": "Tambah Anggota Tim",
+          "method": "POST",
+          "url": "http://127.0.0.1:3100/api/proposal/PROPOSAL_ID/anggota",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"nidn\": \"0412345681\"\n}",
+          "bodyType": "json"
+        },
+        {
+          "name": "Submit — kirim ke Kaprodi",
+          "method": "POST",
+          "url": "http://127.0.0.1:3100/api/proposal/PROPOSAL_ID/submit",
+          "headers": [],
+          "body": "",
+          "bodyType": "none"
+        }
+      ]
+    },
+    {
+      "name": "LPPM — M8 Master Data",
+      "folders": [],
+      "requests": [
+        {
+          "name": "Daftar Program Studi",
+          "method": "GET",
+          "url": "http://127.0.0.1:3100/api/admin/prodi",
+          "headers": [],
+          "body": "",
+          "bodyType": "none"
+        },
+        {
+          "name": "Daftar Periode Akademik",
+          "method": "GET",
+          "url": "http://127.0.0.1:3100/api/admin/periode",
+          "headers": [],
+          "body": "",
+          "bodyType": "none"
+        },
+        {
+          "name": "Konfigurasi Field Dinamis KKN",
+          "method": "GET",
+          "url": "http://127.0.0.1:3100/api/admin/form-field?jenis=KKN",
+          "headers": [],
+          "body": "",
+          "bodyType": "none"
+        }
+      ]
+    }
+  ]
+}
